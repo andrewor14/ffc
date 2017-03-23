@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 
 import sys
@@ -145,10 +145,10 @@ def run(options):
 
     # See http://scikit-learn.org/stable/modules/cross_validation.html
     #     for cross validation
-    # v = 0
-    # if options.verbose:
-    #     print "Prep cross validation at: " + time.strftime("%H:%M:%S")
-    #     v = 10
+    v = 0
+    if options.verbose:
+        print "Prep cross validation at: " + time.strftime("%H:%M:%S")
+        v = 10
     # svm_reg = svm.SVR()
     # lasso_reg = linear_model.Lasso()
     # rf_reg = RandomForestRegressor()
@@ -156,12 +156,12 @@ def run(options):
 
 
     # Hyperparameter tuning for random forest regressor
-    # rf_hyperparameter_space = {
-    #     "n_estimators":      [50, 75],
-    #     "criterion":         ["mse"],
-    #     "max_features":      ["auto"],
-    #     "min_samples_split": [10, 25]
-    # }
+    rf_hyperparameter_space = {
+        "n_estimators":      [50, 75, 100],
+        "criterion":         ["mse"],
+        "max_features":      ["auto"],
+        "min_samples_split": [10, 25, 50]
+    }
 
     # lasso_hyperparameter_space = {
     #     "alpha":         [1000, 10000],
@@ -212,19 +212,22 @@ def run(options):
     # Parameters tuned through GridSearchCV
     if options.verbose:
         print "Training for gpa"
-    gpa_model = RandomForestRegressor(max_features="auto", min_samples_split=10, criterion="mse", n_estimators=75)
+    # gpa_model = RandomForestRegressor(max_features="auto", min_samples_split=10, criterion="mse", n_estimators=75)
+    gpa_model = GridSearchCV(RandomForestRegressor(), param_grid=rf_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS)
     gpa_model.fit(X_gpa, y_gpa)
     gpas = {}
 
     if options.verbose:
         print "Training for grit"
-    grit_model = RandomForestRegressor(max_features="auto", min_samples_split=25, criterion="mse", n_estimators=50)
+    # grit_model = RandomForestRegressor(max_features="auto", min_samples_split=25, criterion="mse", n_estimators=50)
+    grit_model = GridSearchCV(RandomForestRegressor(), param_grid=rf_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS)
     grit_model.fit(X_grit, y_grit)
     grits = {}
 
     if options.verbose:
         print "Training for materialHardship"
-    hard_model = RandomForestRegressor(max_features="auto", min_samples_split=10, criterion="mse", n_estimators=50)
+    # hard_model = RandomForestRegressor(max_features="auto", min_samples_split=10, criterion="mse", n_estimators=50)
+    hard_model = GridSearchCV(RandomForestRegressor(), param_grid=rf_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS)
     hard_model.fit(X_hard, y_hard)
     hards = {}
 
