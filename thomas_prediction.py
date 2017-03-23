@@ -58,7 +58,6 @@ def main():
     parser.add_argument("-t", "--train", help="Path to train.csv", required=True)
     parser.add_argument("-o", "--outfile", help="Path for output predictions.csv", required=True)
     parser.add_argument("-v", "--verbose", help="Verbose logging", action="store_true")
-    parser.add_argument("-s", "--selector", help="Selector. Typing accuracy counts here for now.", required=True)
 
     options = parser.parse_args()
 
@@ -76,16 +75,22 @@ def run(options):
     if options.verbose:
         print "Parsing and extracting non-null labels"
     train_labels = pd.read_csv(options.train)
-    good_label_mask = no_null_mask(train_labels, selector=options.selector)
+    gpa_label_mask = no_null_mask(train_labels, selector="gpa")
+    grit_label_mask = no_null_mask(train_labels, selector="grit")
+    hard_label_mask = no_null_mask(train_labels, selector="materialHardship")
     # good_sample_ids = good_labels.loc[:,'challengeID'].values.flatten()
 
     if options.verbose:
         print "Selecting samples with enough data (non-null labels)"
-    good_ids = train_labels.loc[good_label_mask,'challengeID'].values.flatten()
+    gpa_ids = train_labels.loc[gpa_label_mask,'challengeID'].values.flatten()
+    grit_ids = train_labels.loc[grit_label_mask,'challengeID'].values.flatten()
+    hard_ids = train_labels.loc[hard_label_mask,'challengeID'].values.flatten()
 
     # See http://stackoverflow.com/questions/12096252/use-a-list-of-values-to-select-rows-from-a-pandas-dataframe
     #     for information on isin and the pattern used here
-    good_data = data[data['challengeID'].isin(good_ids)]
+    gpa_data = data[data['challengeID'].isin(gpa_ids)]
+    grit_data = data[data['challengeID'].isin(grit_ids)]
+    hard_data = data[data['challengeID'].isin(hard_ids)]
 
     # See http://stackoverflow.com/questions/34246336/python-randomforest-unknown-label-error
     # gpa_labels = np.asarray(train_labels.loc[good_label_mask,options.selector], dtype=np.float64)
@@ -93,11 +98,21 @@ def run(options):
     
     if options.verbose:
         print "Ensuring ordering between samples and labels"
-    gpas = dict(train_labels.loc[good_label_mask,['challengeID',options.selector]].values)
+    gpas = dict(train_labels.loc[gpa_label_mask,['challengeID',"gpa"]].values)
+    grits = dict(train_labels.loc[grit_label_mask,['challengeID',"grit"]].values)
+    hards = dict(train_labels.loc[hard_label_mask,['challengeID',"materialHardship"]].values)
 
-    ordered_labels = []
-    for cid in good_data.loc[:,'challengeID'].values:
-        ordered_labels.append(gpas[cid])
+    ordered_gpas = []
+    for cid in gpa_data.loc[:,'challengeID'].values:
+        ordered_gpas.append(gpas[cid])
+
+    ordered_grits = []
+    for cid in grit_data.loc[:,'challengeID'].values:
+        ordered_grits.append(grits[cid])
+
+    ordered_hards = []
+    for cid in hard_data.loc[:,'challengeID'].values:
+        ordered_hards.append(hards[cid])
 
     # if options.verbose:
     #     print "Start training at: " + time.strftime("%H:%M:%S")
@@ -110,57 +125,63 @@ def run(options):
     #     print "End training at:   " + time.strftime("%H:%M:%S")
 
 
-    X = good_data.iloc[:,:].values
-    y = ordered_labels
+    X_gpa = gpa_data.iloc[:,:].values
+    y_gpa = ordered_gpas
+
+    X_grit = grit_data.iloc[:,:].values
+    y_grit = ordered_grits
+
+    X_hard = hard_data.iloc[:,:].values
+    y_hard = ordered_hards
 
 
-    if options.verbose:
-        print "Scaling data"
+    # if options.verbose:
+    #     print "Scaling data"
     # See http://scikit-learn.org/stable/modules/preprocessing.html
     #     for information on preprocessing
-    scaler = preprocessing.StandardScaler().fit(X)
-    X_scaled = scaler.transform(X)
+    # scaler = preprocessing.StandardScaler().fit(X)
+    # X_scaled = scaler.transform(X)
 
 
     # See http://scikit-learn.org/stable/modules/cross_validation.html
     #     for cross validation
-    v = 0
-    if options.verbose:
-        print "Prep cross validation at: " + time.strftime("%H:%M:%S")
-        v = 10
-    svm_reg = svm.SVR()
-    lasso_reg = linear_model.Lasso()
-    rf_reg = RandomForestRegressor()
+    # v = 0
+    # if options.verbose:
+    #     print "Prep cross validation at: " + time.strftime("%H:%M:%S")
+    #     v = 10
+    # svm_reg = svm.SVR()
+    # lasso_reg = linear_model.Lasso()
+    # rf_reg = RandomForestRegressor()
     # reg = MLPRegressor() # Not fast
 
 
     # Hyperparameter tuning for random forest regressor
-    rf_hyperparameter_space = {
-        "n_estimators":      [50, 75],
-        "criterion":         ["mse"],
-        "max_features":      ["auto"],
-        "min_samples_split": [10, 25]
-    }
+    # rf_hyperparameter_space = {
+    #     "n_estimators":      [50, 75],
+    #     "criterion":         ["mse"],
+    #     "max_features":      ["auto"],
+    #     "min_samples_split": [10, 25]
+    # }
 
-    lasso_hyperparameter_space = {
-        "alpha":         [1000, 10000],
-        "fit_intercept": [True],
-        "normalize":     [True, False],
-        "tol":           [0.01, 0.1, 1.0],
-        "positive":      [True, False],
-        "selection":     ["random"],
-        "max_iter":      [1000]
-    }
+    # lasso_hyperparameter_space = {
+    #     "alpha":         [1000, 10000],
+    #     "fit_intercept": [True],
+    #     "normalize":     [True, False],
+    #     "tol":           [0.01, 0.1, 1.0],
+    #     "positive":      [True, False],
+    #     "selection":     ["random"],
+    #     "max_iter":      [1000]
+    # }
 
-    svm_hyperparameter_space = {
-        "kernel":   ["rbf", "linear", "poly", "sigmoid"],
-        "epsilon":  [0.01, 0.1, 1.0],
-        "C":        [0.1, 1.0, 10],
-        "degree":   [1, 2, 3, 4],
-        "max_iter": [5000]
-    }
+    # svm_hyperparameter_space = {
+    #     "kernel":   ["rbf", "linear", "poly", "sigmoid"],
+    #     "epsilon":  [0.01, 0.1, 1.0],
+    #     "C":        [0.1, 1.0, 10],
+    #     "degree":   [1, 2, 3, 4],
+    #     "max_iter": [5000]
+    # }
 
-    num_iterations = 32
+    # num_iterations = 32
 
 
 
@@ -172,44 +193,81 @@ def run(options):
     # See http://scikit-learn.org/stable/auto_examples/model_selection/randomized_search.html                                                          #
     #     for example usage (adapted below)                                                                                                            #
     ####################################################################################################################################################
-    search = GridSearchCV(rf_reg, param_grid=rf_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS)
+    # search = GridSearchCV(rf_reg, param_grid=rf_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS)
     # search = GridSearchCV(lasso_reg, param_grid=lasso_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS)
     # search = RandomizedSearchCV(svm_reg, param_distributions=svm_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS, n_iter=num_iterations)
 
-    if options.verbose:
-        print "Start cross validation at: " + time.strftime("%H:%M:%S")
-    search.fit(X, y)
-    # search.fit(X_scaled, y) # Lasso seems to do worse with scaled data
-
-    if options.verbose:
-        print "End cross validation at:   " + time.strftime("%H:%M:%S")
-
-    # print search.cv_results_
-    # print search.best_estimator_
-    print search.best_score_
-    print search.best_params_
-    print search.best_index_
-    print search.scorer_
-    return search
-
-    # print reg.get_params()
-
-    # print scores
-    # return scores
 
     # if options.verbose:
-    #     print "Predicting rest of labels"
-    # gpa_predicts = gpa_model.predict(data.values)
-    # grit_predicts = grit_model.predict(data.values)
-    # hard_predicts = hard_model.predict(data.values)
+    #     print "Start cross validation at: " + time.strftime("%H:%M:%S")
+    # search.fit(X, y)
+    # search.fit(X_scaled, y) # Lasso seems to do worse with scaled data
+
+    # if options.verbose:
+    #     print "End cross validation at:   " + time.strftime("%H:%M:%S")
+
+    predict_X = data.values
+    cids = list(data.loc[:,'challengeID'].values)
+
+    # Parameters tuned through GridSearchCV
+    if options.verbose:
+        print "Training for gpa"
+    gpa_model = RandomForestRegressor(max_features="auto", min_samples_split=10, criterion="mse", n_estimators=75)
+    gpa_model.fit(X_gpa, y_gpa)
+    gpas = {}
+
+    if options.verbose:
+        print "Training for grit"
+    grit_model = RandomForestRegressor(max_features="auto", min_samples_split=25, criterion="mse", n_estimators=50)
+    grit_model.fit(X_grit, y_grit)
+    grits = {}
+
+    if options.verbose:
+        print "Training for materialHardship"
+    hard_model = RandomForestRegressor(max_features="auto", min_samples_split=10, criterion="mse", n_estimators=50)
+    hard_model.fit(X_hard, y_hard)
+    hards = {}
+
+    if options.verbose:
+        print "Predicting rest of labels"
+    gpa_predicts = gpa_model.predict(predict_X)
+    for i in xrange(len(cids)):
+        gpas[cids[i]] = gpa_predicts[i]
+
+    grit_predicts = grit_model.predict(predict_X)
+    for i in xrange(len(cids)):
+        grits[cids[i]] = grit_predicts[i]
+
+    hard_predicts = hard_model.predict(predict_X)
+    for i in xrange(len(cids)):
+        hards[cids[i]] = hard_predicts[i]
 
     # Output
     if options.verbose:
         print "Writing predictions to " + options.outfile
     dumbpredict = False
 
-    # for cid in data.loc[:,'challengeID'].values:
-        
+    ofile.write('"challengeID","gpa","grit","materialHardship","eviction","layoff","jobTraining"\n')
+
+    for cid in sorted(list(data.loc[:,'challengeID'].values)):
+        ofile.write(str(cid))
+        ofile.write(",")
+        ofile.write(str(gpas[cid]))
+        ofile.write(",")
+        ofile.write(str(grits[cid]))
+        ofile.write(",")
+        ofile.write(str(hards[cid]))
+        ofile.write(",")
+        ofile.write(str(dumbpredict))
+        ofile.write(",")
+        ofile.write(str(dumbpredict))
+        ofile.write(",")
+        ofile.write(str(dumbpredict))
+        ofile.write("\n")
+        ofile.flush()
+
+    ofile.close()
+
 
 
 if __name__ == "__main__":
