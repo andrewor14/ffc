@@ -29,13 +29,19 @@ def column_na_portions(data):
     return (data.isnull().sum() / float(len(data.index)))
 
 
+def column_ne_portions(data):
+    return (data.lt(0).sum() / float(len(data.index)))
+
+
 def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-b", "--background", help="Path to background.csv", required=True)
     parser.add_argument("-o", "--output_filename", help="Path to output file", required=True)
-    parser.add_argument("-c", "--cutoff", help="[OPTIONAL] Remove columns that have more than cutoff portion (float) null values", default=0, type=float)
     parser.add_argument("-v", "--verbose", help="[OPTIONAL] Verbosity (flag)", action="store_true")
+    parser.add_argument("-nac", "--na_cutoff", help="[OPTIONAL] Remove columns that have more than cutoff portion (float) null values.", default=0, type=float)
+    parser.add_argument("-nec", "--ne_cutoff", help="[OPTIONAL] Remove columns that have more than cutoff portion (float) negative values. Applied after na_cutoff, if specified.", default=0, type=float)
+
 
     options = parser.parse_args()
 
@@ -53,17 +59,26 @@ def run(options):
     na_portions = column_na_portions(data)
 
     if options.verbose:
+        print "Calculating portions of entries that are negative"
+    ne_portions = column_ne_portions(data)
+
+    if options.verbose:
         print "Filling NA values"
     data = fillMissing(data)
 
     if options.verbose:
         print "Removing columns with NA portions that are too high"
-    data = data.loc[:,~(na_portions.gt(float(options.cutoff)))]
+    data = data.loc[:,~(na_portions.gt(float(options.na_cutoff)))]
+
+    if options.verbose:
+        print "Removing columns with negative portions that are too high"
+    data = data.loc[:,~(ne_portions.gt(float(options.ne_cutoff)))]
 
     if options.verbose:
         print "Writing preprocessed data to " + str(options.output_filename)
     data.to_csv(options.output_filename, index=False)
 
+    return data
 
 
 if __name__ == "__main__":

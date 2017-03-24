@@ -148,7 +148,7 @@ def run(options):
     v = 0
     if options.verbose:
         print "Prep cross validation at: " + time.strftime("%H:%M:%S")
-        v = 10
+        v = 1
     # svm_reg = svm.SVR()
     # lasso_reg = linear_model.Lasso()
     # rf_reg = RandomForestRegressor()
@@ -230,6 +230,32 @@ def run(options):
     hard_model = GridSearchCV(RandomForestRegressor(), param_grid=rf_hyperparameter_space, cv=3, scoring=make_scorer(r2_score, greater_is_better=True), verbose=v, refit=True, n_jobs=NUM_JOBS)
     hard_model.fit(X_hard, y_hard)
     hards = {}
+
+
+    if options.verbose:
+        print "\n"
+        print "################################################################"
+        print "\n"
+        print "gpa tuning results"
+        print "------------------"
+        print "Best Score: " + str(gpa_model.best_score_)
+        print "Best Parameters"
+        print gpa_model.best_params_
+        print "\n"
+        print "grit tuning results"
+        print "------------------"
+        print "Best Score: " + str(grit_model.best_score_)
+        print "Best Parameters"
+        print grit_model.best_params_
+        print "\n"
+        print "materialHardship tuning results"
+        print "------------------"
+        print "Best Score: " + str(hard_model.best_score_)
+        print "Best Parameters"
+        print hard_model.best_params_
+        print "\n"
+        print "################################################################"
+        print "\n"
 
     if options.verbose:
         print "Predicting rest of labels"
