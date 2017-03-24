@@ -54,7 +54,9 @@ def no_null_mask(labels, selector=None):
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-b", "--background", help="Path to background.csv", required=True)
+    parser.add_argument("-bgpa", "--background_gpa", help="Path to data for training gpa", required=True)
+    parser.add_argument("-bgrit", "--background_grit", help="Path to data for training grit", required=True)
+    parser.add_argument("-bhard", "--background_hard", help="Path to data for training materialHardship", required=True)
     parser.add_argument("-t", "--train", help="Path to train.csv", required=True)
     parser.add_argument("-o", "--outfile", help="Path for output predictions.csv", required=True)
     parser.add_argument("-v", "--verbose", help="Verbose logging", action="store_true")
@@ -68,17 +70,17 @@ def run(options):
     ofile = open(options.outfile, 'w')
 
     if options.verbose:
-        print "Reading background file"
-    data = pd.read_csv(options.background, low_memory=False)
+        print "Reading background files"
+    gpa_data = pd.read_csv(options.background_gpa, low_memory=False)
+    grit_data = pd.read_csv(options.background_grit, low_memory=False)
+    hard_data = pd.read_csv(options.background_hard, low_memory=False)
 
-    # TODO(tfs;2017-03-20): Select labels/samples per variable
     if options.verbose:
         print "Parsing and extracting non-null labels"
     train_labels = pd.read_csv(options.train)
     gpa_label_mask = no_null_mask(train_labels, selector="gpa")
     grit_label_mask = no_null_mask(train_labels, selector="grit")
     hard_label_mask = no_null_mask(train_labels, selector="materialHardship")
-    # good_sample_ids = good_labels.loc[:,'challengeID'].values.flatten()
 
     if options.verbose:
         print "Selecting samples with enough data (non-null labels)"
@@ -88,13 +90,9 @@ def run(options):
 
     # See http://stackoverflow.com/questions/12096252/use-a-list-of-values-to-select-rows-from-a-pandas-dataframe
     #     for information on isin and the pattern used here
-    gpa_data = data[data['challengeID'].isin(gpa_ids)]
-    grit_data = data[data['challengeID'].isin(grit_ids)]
-    hard_data = data[data['challengeID'].isin(hard_ids)]
-
-    # See http://stackoverflow.com/questions/34246336/python-randomforest-unknown-label-error
-    # gpa_labels = np.asarray(train_labels.loc[good_label_mask,options.selector], dtype=np.float64)
-    # gpa_labels = train_labels.loc[good_label_mask,['challengeID',options.selector]]
+    gpa_train_data = gpa_data[gpa_data['challengeID'].isin(gpa_ids)]
+    grit_train_data = grit_data[grit_data['challengeID'].isin(grit_ids)]
+    hard_train_data = hard_data[hard_data['challengeID'].isin(hard_ids)]
     
     if options.verbose:
         print "Ensuring ordering between samples and labels"
@@ -103,15 +101,15 @@ def run(options):
     hards = dict(train_labels.loc[hard_label_mask,['challengeID',"materialHardship"]].values)
 
     ordered_gpas = []
-    for cid in gpa_data.loc[:,'challengeID'].values:
+    for cid in gpa_train_data.loc[:,'challengeID'].values:
         ordered_gpas.append(gpas[cid])
 
     ordered_grits = []
-    for cid in grit_data.loc[:,'challengeID'].values:
+    for cid in grit_train_data.loc[:,'challengeID'].values:
         ordered_grits.append(grits[cid])
 
     ordered_hards = []
-    for cid in hard_data.loc[:,'challengeID'].values:
+    for cid in hard_train_data.loc[:,'challengeID'].values:
         ordered_hards.append(hards[cid])
 
     # if options.verbose:
@@ -125,13 +123,13 @@ def run(options):
     #     print "End training at:   " + time.strftime("%H:%M:%S")
 
 
-    X_gpa = gpa_data.iloc[:,:].values
+    X_gpa = gpa_train_data.iloc[:,:].values
     y_gpa = ordered_gpas
 
-    X_grit = grit_data.iloc[:,:].values
+    X_grit = grit_train_data.iloc[:,:].values
     y_grit = ordered_grits
 
-    X_hard = hard_data.iloc[:,:].values
+    X_hard = hard_train_data.iloc[:,:].values
     y_hard = ordered_hards
 
 
@@ -159,7 +157,7 @@ def run(options):
     rf_hyperparameter_space = {
         "n_estimators":      [50, 75, 100],
         "criterion":         ["mse"],
-        "max_features":      ["auto"],
+        "max_features":      ["auto", 0.75],
         "min_samples_split": [10, 25, 50]
     }
 
@@ -206,8 +204,12 @@ def run(options):
     # if options.verbose:
     #     print "End cross validation at:   " + time.strftime("%H:%M:%S")
 
-    predict_X = data.values
-    cids = list(data.loc[:,'challengeID'].values)
+    gpa_predict_X = gpa_data.values
+    grit_predict_X = grit_data.values
+    hard_predict_X = hard_data.values
+    gpa_cids = list(gpa_data.loc[:,'challengeID'].values)
+    grit_cids = list(grit_data.loc[:,'challengeID'].values)
+    hard_cids = list(hard_data.loc[:,'challengeID'].values)
 
     # Parameters tuned through GridSearchCV
     if options.verbose:
@@ -257,17 +259,19 @@ def run(options):
         print "################################################################"
         print "\n"
 
+    cids = sorted(list(set(gpa_cids).intersection(set(grit_cids)).intersection(set(hard_cids))))
+
     if options.verbose:
         print "Predicting rest of labels"
-    gpa_predicts = gpa_model.predict(predict_X)
+    gpa_predicts = gpa_model.predict(gpa_predict_X)
     for i in xrange(len(cids)):
         gpas[cids[i]] = gpa_predicts[i]
 
-    grit_predicts = grit_model.predict(predict_X)
+    grit_predicts = grit_model.predict(grit_predict_X)
     for i in xrange(len(cids)):
         grits[cids[i]] = grit_predicts[i]
 
-    hard_predicts = hard_model.predict(predict_X)
+    hard_predicts = hard_model.predict(hard_predict_X)
     for i in xrange(len(cids)):
         hards[cids[i]] = hard_predicts[i]
 
@@ -278,7 +282,7 @@ def run(options):
 
     ofile.write('"challengeID","gpa","grit","materialHardship","eviction","layoff","jobTraining"\n')
 
-    for cid in sorted(list(data.loc[:,'challengeID'].values)):
+    for cid in cids:
         ofile.write(str(cid))
         ofile.write(",")
         ofile.write(str(gpas[cid]))
