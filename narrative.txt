@@ -1,1 +1,0 @@
-This submission only attempts to predict continuous labels (gpa, grit, materialHardship). All boolean labels have been predicted "False". We use sklearn's RandomForestRegressor with different hyperparameters for each label type (obtained through sklearn's GridSearchCV).
