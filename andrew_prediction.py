@@ -19,7 +19,7 @@ base_dir = "data"
 background_file = join(base_dir, "background.out.csv")
 label_file = join(base_dir, "train.out.csv")
 orig_label_file = join(base_dir, "train.csv")
-out_file = join(base_dir, "andrew_prediction.csv")
+out_file = "andrew_prediction.csv"
 
 def main():
   print "Reading in %s..." % background_file
