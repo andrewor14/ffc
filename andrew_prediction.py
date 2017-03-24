@@ -14,52 +14,104 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
+
+base_dir = "data"
+background_file = join(base_dir, "background.out.csv")
+label_file = join(base_dir, "train.out.csv")
+orig_label_file = join(base_dir, "train.csv")
+out_file = "andrew_prediction.csv"
+
 def main():
-  base_dir = "data"
-  background_file = join(base_dir, "background.out.csv")
-  label_file = join(base_dir, "train.out.csv")
   print "Reading in %s..." % background_file
   background_df = pd.read_csv(background_file, low_memory=False)
   print "Reading in %s..." % label_file
   label_df = pd.read_csv(label_file, low_memory=False)
+  print "Reading in %s..." % orig_label_file
+  orig_label_df = pd.read_csv(orig_label_file, low_memory=False)
 
   name_to_model = { 
-    'bnb': lambda: BernoulliNB(),
-    'mnb': lambda: MultinomialNB(),
+    #'bnb': lambda: BernoulliNB(),
+    #'mnb': lambda: MultinomialNB(),
     #'svm': lambda: make_svm_model(),
-    'dt': lambda: make_dt_model(),
+    #'dt': lambda: make_dt_model(),
     'rf': lambda: make_rf_model()
   }
   
-  # Do the training!
-  # TODO: test other labels as well
-  n_folds = 5
-  label_name = "jobTraining"
-  for model_name in name_to_model:
-    print "Running model '%s'..." % model_name
-    start_time = time.time()
-    kf = KFold(n_splits = n_folds)
-    result = []
-    for i, (train_indices, test_indices) in enumerate(kf.split(label_df)):
-      fold_start_time = time.time()
-      train_df = label_df.transpose()[train_indices].transpose()
-      test_df = label_df.transpose()[test_indices].transpose()
-      train_features = get_features(train_df, background_df)
-      test_features = get_features(test_df, background_df)
-      train_labels = get_label(train_df, label_name)
-      test_labels = get_label(test_df, label_name)
-      if model_name == "svm":
-        scaler = StandardScaler()
-        train_features = scaler.fit_transform(train_features)
-        test_features = scaler.transform(test_features)
-      model = name_to_model[model_name]()
-      model.fit(train_features, train_labels)
-      predicted_labels = [float(model.predict_proba([tf])[0][1]) for tf in test_features]
-      expected_labels = test_labels.tolist()
-      result += [(predicted_labels, expected_labels)]
-      print "  - Finished running on fold %i, took %s s" % (i, time.time() - fold_start_time())
-    elapsed = time.time() - start_time
-    print_result(result, elapsed)
+  # Do the training to find the best model
+  #n_folds = 5
+  #label_name = "jobTraining"
+  #for model_name in name_to_model:
+  #  print "Running model '%s'..." % model_name
+  #  start_time = time.time()
+  #  kf = KFold(n_splits = n_folds)
+  #  result = []
+  #  for i, (train_indices, test_indices) in enumerate(kf.split(label_df)):
+  #    # NOTE: let's just forget CV for now
+  #    if i > 0:
+  #      break
+  #    fold_start_time = time.time()
+  #    train_df = label_df.transpose()[train_indices].transpose()
+  #    test_df = label_df.transpose()[test_indices].transpose()
+  #    train_features = get_features(train_df, background_df)
+  #    test_features = get_features(test_df, background_df)
+  #    train_labels = get_label(train_df, label_name)
+  #    test_labels = get_label(test_df, label_name)
+  #    if model_name == "svm":
+  #      scaler = StandardScaler()
+  #      train_features = scaler.fit_transform(train_features)
+  #      test_features = scaler.transform(test_features)
+  #    model = name_to_model[model_name]()
+  #    model.fit(train_features, train_labels)
+  #    predicted_labels = [float(model.predict_proba([tf])[0][1]) for tf in test_features]
+  #    expected_labels = test_labels.tolist()
+  #    result += [(predicted_labels, expected_labels)]
+  #    print "  - Finished running on fold %i, took %s s" % (i, time.time() - fold_start_time())
+  #  elapsed = time.time() - start_time
+  #  print_result(result, elapsed)
+
+  # For now let's just always use RF to write output CSV
+  max_challenge_id = max(background_df["challengeID"].as_matrix().tolist())
+  result = {}
+  continuous_labels = ["gpa", "grit", "materialHardship"]
+  boolean_labels = ["eviction", "layoff", "jobTraining"]
+  # Just fill these with all zeros for now
+  for label_name in continuous_labels:
+    result[label_name] = [0.0] * max_challenge_id
+  # Predict boolean labels
+  for label_name in boolean_labels:
+    result[label_name] = [None] * max_challenge_id
+    model = name_to_model["rf"]()
+    train_features = get_features(label_df, background_df)
+    train_labels = get_label(label_df, label_name)
+    print "Training model for label '%s'..." % label_name
+    model.fit(train_features, train_labels)
+    print "Predicting missing values for '%s'..." % label_name
+    for i, row in background_df.iterrows():
+      challenge_id = int(row["challengeID"])
+      result_index = challenge_id - 1
+      existing_labels = orig_label_df[orig_label_df["challengeID"] == challenge_id]
+      # If the value is already there, just use it
+      if existing_labels.size > 0:
+        result[label_name][result_index] = existing_labels[label_name].fillna(False).values.tolist()[0]
+      # Otherwise we need to predict it using our model
+      else:
+        features = row.drop(["challengeID"]).as_matrix()
+        predicted_label = round(model.predict_proba([features])[0][1]) == 1
+        result[label_name][result_index] = predicted_label
+
+  # Write our prediction CSV
+  print "Writing out predictions to %s..." % out_file
+  with open(out_file, "w") as writer:
+    header = ["challengeID"] + continuous_labels + boolean_labels
+    header = ",".join(["\"%s\"" % h for h in header])
+    writer.write(header + "\n")
+    for i in range(max_challenge_id):
+      challenge_id = i + 1
+      line = [challenge_id]
+      line += [result[label_name][i] for label_name in continuous_labels]
+      line += [result[label_name][i] for label_name in boolean_labels]
+      line = ",".join([str(x) for x in line])
+      writer.write(line + "\n")
 
 def make_dt_model():
   param_grid = [{'min_samples_leaf':[1, 10, 100], 'max_features':[0.5, 0.75, 0.9]}]
