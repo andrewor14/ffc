@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
+from sklearn.feature_selection import chi2, SelectKBest
 from sklearn.metrics import roc_curve, auc, f1_score, precision_score, recall_score
 from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
@@ -30,14 +31,14 @@ def main():
   orig_label_df = pd.read_csv(orig_label_file, low_memory=False)
 
   name_to_model = { 
-    #'bnb': lambda: BernoulliNB(),
+    'bnb': lambda: BernoulliNB(),
     #'mnb': lambda: MultinomialNB(),
     #'svm': lambda: make_svm_model(),
     #'dt': lambda: make_dt_model(),
     'rf': lambda: make_rf_model()
   }
-  
-  # Do the training to find the best model
+
+  ## Do the training to find the best model
   #n_folds = 5
   #label_name = "jobTraining"
   #for model_name in name_to_model:
@@ -51,9 +52,11 @@ def main():
   #      break
   #    fold_start_time = time.time()
   #    train_df = label_df.transpose()[train_indices].transpose()
+  #    train_df = train_df[~train_df[label_name].isnull()]
   #    test_df = label_df.transpose()[test_indices].transpose()
-  #    train_features = get_features(train_df, background_df)
-  #    test_features = get_features(test_df, background_df)
+  #    test_df = test_df[~test_df[label_name].isnull()]
+  #    train_features = get_features(train_df, background_df, label_name)
+  #    test_features = get_features(test_df, background_df, label_name)
   #    train_labels = get_label(train_df, label_name)
   #    test_labels = get_label(test_df, label_name)
   #    if model_name == "svm":
@@ -65,13 +68,16 @@ def main():
   #    predicted_labels = [float(model.predict_proba([tf])[0][1]) for tf in test_features]
   #    expected_labels = test_labels.tolist()
   #    result += [(predicted_labels, expected_labels)]
-  #    print "  - Finished running on fold %i, took %s s" % (i, time.time() - fold_start_time())
+  #    print "  - Finished running on fold %i, used %s features, %s training samples, took %s s" %\
+  #      (i, train_features.shape[1], train_df.shape[0], time.time() - fold_start_time)
   #  elapsed = time.time() - start_time
   #  print_result(result, elapsed)
 
   # For now let's just always use RF to write output CSV
   max_challenge_id = max(background_df["challengeID"].as_matrix().tolist())
   result = {}
+  columns_to_drop = [c for c in background_df.columns.values.tolist()\
+    if "mothid" in c.lower() or "fathid" in c.lower() or c == "idnum" or c == "challengeID"]
   continuous_labels = ["gpa", "grit", "materialHardship"]
   boolean_labels = ["eviction", "layoff", "jobTraining"]
   # Just fill these with all zeros for now
@@ -81,9 +87,11 @@ def main():
   for label_name in boolean_labels:
     result[label_name] = [None] * max_challenge_id
     model = name_to_model["rf"]()
-    train_features = get_features(label_df, background_df)
-    train_labels = get_label(label_df, label_name)
-    print "Training model for label '%s'..." % label_name
+    train_df = label_df[~label_df[label_name].isnull()]
+    train_features = get_features(train_df, background_df, label_name)
+    train_labels = get_label(train_df, label_name)
+    print "Training model for label '%s' using %s features and %s samples..." %\
+      (label_name, train_features.shape[1], train_features.shape[0])
     model.fit(train_features, train_labels)
     print "Predicting missing values for '%s'..." % label_name
     for i, row in background_df.iterrows():
@@ -95,7 +103,7 @@ def main():
         result[label_name][result_index] = existing_labels[label_name].fillna(False).values.tolist()[0]
       # Otherwise we need to predict it using our model
       else:
-        features = row.drop(["challengeID"]).as_matrix()
+        features = row.drop(columns_to_drop).as_matrix()
         predicted_label = round(model.predict_proba([features])[0][1]) == 1
         result[label_name][result_index] = predicted_label
 
@@ -118,7 +126,7 @@ def make_dt_model():
   return GridSearchCV(DecisionTreeClassifier(), param_grid)
 
 def make_rf_model():
-  return RandomForestClassifier(n_estimators=100, min_samples_leaf=10, max_features=0.75)
+  return RandomForestClassifier(n_estimators=100, min_samples_leaf=10)
 
 def make_svm_model():
   #param_grid = [\
@@ -137,17 +145,22 @@ def get_label(df, label_name):
   labels = [1 if label else 0 for label in labels]
   return np.array(labels)
 
-def get_features(label_df, background_df):
+# NOTE: chi2 feature selection seems to be performing really terribly here. Don't set fraction < 1!
+def get_features(label_df, background_df, label_name, fraction = 1, max_features = 100000):
   '''
   Extract relevant features from the given dataframe.
   :return a numpy array with a multiple columns, one for each feature.
   '''
-  features = []
-  for challenge_id in label_df["challengeID"]:
-    row = background_df[background_df["challengeID"] == challenge_id]
-    row = row.drop(["challengeID"], axis=1).as_matrix()[0].tolist()
-    features += [row]
-  return np.array(features)
+  k = min(int(background_df.shape[1] * fraction), max_features)
+  challenge_ids = set(label_df["challengeID"].values.tolist())
+  columns_to_drop = [c for c in background_df.columns.values.tolist()\
+    if "mothid" in c.lower() or "fathid" in c.lower() or c == "idnum" or c == "challengeID"]
+  train_background_df = background_df[background_df["challengeID"].isin(challenge_ids)]
+  labels = np.array([1 if x else 0 for x in label_df[label_name].tolist()])
+  select = SelectKBest(chi2, k)
+  select.fit(train_background_df.values, labels)
+  indices = np.where(select.get_support())[0].tolist()
+  return train_background_df[indices].drop(columns_to_drop, axis=1).values
 
 def print_result(label_pairs, elapsed):
   '''
