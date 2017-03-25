@@ -31,7 +31,7 @@ def main():
   orig_label_df = pd.read_csv(orig_label_file, low_memory=False)
 
   name_to_model = { 
-    'bnb': lambda: BernoulliNB(),
+    #'bnb': lambda: BernoulliNB(),
     #'mnb': lambda: MultinomialNB(),
     #'svm': lambda: make_svm_model(),
     #'dt': lambda: make_dt_model(),
@@ -39,8 +39,10 @@ def main():
   }
 
   ## Do the training to find the best model
-  #n_folds = 5
-  #label_name = "jobTraining"
+  n_folds = 5
+  chi2_fraction = 0.1
+  max_features = 40
+  label_name = "jobTraining"
   #for model_name in name_to_model:
   #  print "Running model '%s'..." % model_name
   #  start_time = time.time()
@@ -48,36 +50,36 @@ def main():
   #  result = []
   #  for i, (train_indices, test_indices) in enumerate(kf.split(label_df)):
   #    # NOTE: let's just forget CV for now
-  #    if i > 0:
-  #      break
+  #    #if i > 0:
+  #    #  break
   #    fold_start_time = time.time()
   #    train_df = label_df.transpose()[train_indices].transpose()
   #    train_df = train_df[~train_df[label_name].isnull()]
   #    test_df = label_df.transpose()[test_indices].transpose()
   #    test_df = test_df[~test_df[label_name].isnull()]
-  #    train_features = get_features(train_df, background_df, label_name)
-  #    test_features = get_features(test_df, background_df, label_name)
   #    train_labels = get_label(train_df, label_name)
   #    test_labels = get_label(test_df, label_name)
-  #    if model_name == "svm":
-  #      scaler = StandardScaler()
-  #      train_features = scaler.fit_transform(train_features)
-  #      test_features = scaler.transform(test_features)
+  #    train_challenge_ids = set(train_df["challengeID"].values.tolist())
+  #    test_challenge_ids = set(test_df["challengeID"].values.tolist())
+  #    # Do the chi2 reduction
+  #    feature_keep_indices = get_keep_indices(\
+  #      background_df, train_labels, train_challenge_ids, chi2_fraction, max_features)
+  #    train_features = get_matching_rows(background_df, train_challenge_ids)[feature_keep_indices]
+  #    test_features = get_matching_rows(background_df, test_challenge_ids)[feature_keep_indices]
   #    model = name_to_model[model_name]()
-  #    model.fit(train_features, train_labels)
-  #    predicted_labels = [float(model.predict_proba([tf])[0][1]) for tf in test_features]
+  #    model.fit(train_features.values, train_labels)
+  #    predicted_labels = [float(model.predict_proba([tf])[0][1]) for tf in test_features.values]
   #    expected_labels = test_labels.tolist()
   #    result += [(predicted_labels, expected_labels)]
+  #    (num_samples, num_features) = train_features.shape
   #    print "  - Finished running on fold %i, used %s features, %s training samples, took %s s" %\
-  #      (i, train_features.shape[1], train_df.shape[0], time.time() - fold_start_time)
+  #      (i, num_features, num_samples, time.time() - fold_start_time)
   #  elapsed = time.time() - start_time
   #  print_result(result, elapsed)
 
   # For now let's just always use RF to write output CSV
   max_challenge_id = max(background_df["challengeID"].as_matrix().tolist())
   result = {}
-  columns_to_drop = [c for c in background_df.columns.values.tolist()\
-    if "mothid" in c.lower() or "fathid" in c.lower() or c == "idnum" or c == "challengeID"]
   continuous_labels = ["gpa", "grit", "materialHardship"]
   boolean_labels = ["eviction", "layoff", "jobTraining"]
   # Just fill these with all zeros for now
@@ -86,13 +88,17 @@ def main():
   # Predict boolean labels
   for label_name in boolean_labels:
     result[label_name] = [None] * max_challenge_id
-    model = name_to_model["rf"]()
     train_df = label_df[~label_df[label_name].isnull()]
-    train_features = get_features(train_df, background_df, label_name)
     train_labels = get_label(train_df, label_name)
+    train_challenge_ids = set(train_df["challengeID"].values.tolist())
+    # Do the chi2 reduction
+    feature_keep_indices = get_keep_indices(\
+      background_df, train_labels, train_challenge_ids, chi2_fraction, max_features)
+    train_features = get_matching_rows(background_df, train_challenge_ids)[feature_keep_indices]
+    model = name_to_model["rf"]()
     print "Training model for label '%s' using %s features and %s samples..." %\
       (label_name, train_features.shape[1], train_features.shape[0])
-    model.fit(train_features, train_labels)
+    model.fit(train_features.values, train_labels)
     print "Predicting missing values for '%s'..." % label_name
     for i, row in background_df.iterrows():
       challenge_id = int(row["challengeID"])
@@ -103,7 +109,7 @@ def main():
         result[label_name][result_index] = existing_labels[label_name].fillna(False).values.tolist()[0]
       # Otherwise we need to predict it using our model
       else:
-        features = row.drop(columns_to_drop).as_matrix()
+        features = row[feature_keep_indices].values
         predicted_label = round(model.predict_proba([features])[0][1]) == 1
         result[label_name][result_index] = predicted_label
 
@@ -145,22 +151,27 @@ def get_label(df, label_name):
   labels = [1 if label else 0 for label in labels]
   return np.array(labels)
 
-# NOTE: chi2 feature selection seems to be performing really terribly here. Don't set fraction < 1!
-def get_features(label_df, background_df, label_name, fraction = 1, max_features = 100000):
+def get_matching_rows(background_df, challenge_ids):
   '''
-  Extract relevant features from the given dataframe.
-  :return a numpy array with a multiple columns, one for each feature.
+  :return a smaller background_df with rows matching the specified challenge IDs.
   '''
+  return background_df[background_df["challengeID"].isin(challenge_ids)]
+
+def get_keep_indices(background_df, train_labels, challenge_ids, fraction = 1, max_features = 10000):
+  '''
+  :return indices corresponding to features to keep
+  '''
+  #columns_to_drop = [c for c in background_df.columns.values.tolist()\
+  #  if "mothid" in c.lower() or "fathid" in c.lower() or c == "idnum" or c == "challengeID"]
   k = min(int(background_df.shape[1] * fraction), max_features)
-  challenge_ids = set(label_df["challengeID"].values.tolist())
-  columns_to_drop = [c for c in background_df.columns.values.tolist()\
-    if "mothid" in c.lower() or "fathid" in c.lower() or c == "idnum" or c == "challengeID"]
-  train_background_df = background_df[background_df["challengeID"].isin(challenge_ids)]
-  labels = np.array([1 if x else 0 for x in label_df[label_name].tolist()])
-  select = SelectKBest(chi2, k)
-  select.fit(train_background_df.values, labels)
-  indices = np.where(select.get_support())[0].tolist()
-  return train_background_df[indices].drop(columns_to_drop, axis=1).values
+  background_df_for_training = get_matching_rows(background_df, challenge_ids)
+  select = SelectKBest(lambda X, y: np.array([-1 * t for t in chi2(X, y)[0].tolist()]), k)
+  select.fit(background_df_for_training.values, train_labels)
+  keep_indices = np.where(select.get_support())[0].tolist()
+  drop_indices = list(set(range(background_df.shape[1])) - set(keep_indices))
+  if len(drop_indices) < 100:
+    print "  - Dropping these columns: %s" % background_df.columns[drop_indices].values.tolist()
+  return keep_indices
 
 def print_result(label_pairs, elapsed):
   '''
