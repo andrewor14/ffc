@@ -68,7 +68,9 @@ All source code is available on Github at \cite{myrepo}.
 \section{Dataset}
 \label{sec:dataset}
 
-[TODO: WRITE ME]
+The background data is primarily composed of answers collected from interviews with the families over the years. These are the features used to train our models. Each row uniquely identifies a child and each column is either an ID of some form or an interview answer. In this dataset, there are 4242 rows and 12945 columns.
+
+The label data consists of six labels we wish to predict based on the features in the background data. There are 2121 rows in the label data, exactly half the number of rows in the background data. The goal is to predict the six labels for the 2121 missing rows. These labels are derived from a final interview with the child when he or she is age 15. The six labels are: GPA, grit, material hardship, eviction, layoff and job training. The first three are continuous labels while the latter three are binary labels.
 
 % We used two datasets in this experiment. The first is the Sentiment Labelled Sentences Data Set \cite{smalldataset}, which consists of 3,000 labelled sentences extracted from reviews from IMDB, Amazon, and Yelp. There are 500 positive and 500 negative sentences from each of the websites and no neutral sentences. This dataset was used for evaluating a classification method that works around the lack of instance labels by exploring instance-level similarity \cite{individuallabel}.
 
@@ -76,19 +78,17 @@ All source code is available on Github at \cite{myrepo}.
 
 % The reasons for using this second dataset are twofold. First, it is much larger than the first one, which is conducive to more general models and thus lower generalization error. Many commonly used text analysis techniques we explored did not have a significant impact on the accuracy when training on the smaller dataset. Second, the Amazon dataset comes with ratings (out of 5 stars) in addition to just positive or negative labels. This enables us to generalize the techniques used in this project to multi-class classification in the future.
 
-\section{Data processing}
-\label{sec:dataprocessing}
+\section{Preprocessing}
+\label{sec:preprocessing}
 
 [TODO: WRITE ME]
 
 % Raw word tokens are not suitable as features for several reasons. First, some words are used only very rarely and do not actually convey any sentiment. These could be words that are highly specific to the user or simply typos. Second, many words have multiple forms that are semantically equivalent. Third, analyzing individual word tokens misses semantics expressed through phrases or negation. Thus, feature extraction and selection are both conducive to a feature set more representative of the underlying sentiments expressed by the users.
 
-\subsection{Feature extraction}
-\label{sec:featureextraction}
+\subsection{Imputation}
+\label{sec:imputation}
 
 [TODO: WRITE ME]
-
-% We used the NLTK library to tokenize, lower case, lemmatize and stem each word using the Porter stemming methods. In addition to individual word tokens, we also include bigrams in our bag of "words" representation. Each entry in our feature vector then is the number of times each "word" appears in a document.
 
 \subsection{Feature selection}
 \label{sec:featureselection}
