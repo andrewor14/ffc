@@ -178,18 +178,15 @@ Given a new sample $x$, a single regression tree determines which leaf represent
 
 % We used implementations in the \texttt{scikit-learn} \cite{scikitlearn} library for each of the classification schemes described above. Additionally, as a thought experiment, we implemented our own Bernoulli naive Bayes and multinomial naive Bayes classifiers from scratch in python and compared our results against implementations in \texttt{scikit-learn}. To enhance the robustness and generality of each of our models, we used $k$-fold cross validation with $k=5$.
 
-\subsection{Metrics}
-\label{sec:metrics}
+% \subsection{Metrics}
+% \label{sec:metrics}
 
-[TODO: WRITE ME]
-
-% In addition to raw accuracy, we evaluated each of the classification methods using a number of standard classification metrics.
 % \begin{align*}
-% &\text{Area under ROC curve}\\
-% \text{precision} &= \dfrac{TP}{TP + FP}\\
-% \text{recall} &= \dfrac{TP}{TP + FN}\\
-% \text{F1 score} &= 2 \cdot \dfrac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}}
+%   \text{accuracy} &= \dfrac{\text{TP} + \text{TN}}{\text{TP} + \text{TN} + \text{FP} + \text{FN}}\\
+%   \text{precision} &= \dfrac{\text{TP}}{\text{TP} + \text{FP}}\\
+%   \text{recall} &= \dfrac{\text{TP}}{\text{TP} + \text{FN}}
 % \end{align*}
+
 
 % These additional metrics were chosen because the raw accuracy does not contain any information about the number of false positives and false negatives. The area under the ROC curve gives us insight into the probability that a randomly chosen positive example has higher probability in being predicted as positive than a randomly chosen negative example. However, the area under two ROC curves can still be equal even if the two models have widely different precision and recall. Since precision and recall are both desirable properties, we use the F1 score, which captures the harmonic mean of both rates, in our evaluation.
 
@@ -250,6 +247,14 @@ The results of this cross-validation hyperparameter tuning are shown in Table~\r
 
 \subsection{Results}
 \label{sec:results}
+
+We evaluated continuous variable predictions using the $R^2$ coefficient of determination defined as. Given $n$ true continuous labels $y_i$, let $\bar{y} = \frac{1}{n}\sum_{i=1}^n y_i$ be the mean of all labels. Let the predicted labels be denoted $\hat{y}_i$. The $R^2$ coefficient of determination is then defined as
+
+\begin{align*}
+  R^2 &= 1 - \frac{\sum_{i=1}^n (y_i - \hat{y}_i)^2}{\sum_{i=1}^n (y_i - \bar{y})^2}
+\end{align*}
+
+In addition to accuracy, we evaluated boolean variable predictions with precision, recall, and F1 scores. The F1 score is the harmonic mean of precision and recall, and is there greater when both precision and recall are greater.
 
 [TODO: WRITE ME]
 
