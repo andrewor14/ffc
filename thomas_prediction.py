@@ -10,6 +10,7 @@ import pandas as pd
 from sklearn import svm
 from sklearn import linear_model
 from sklearn import preprocessing
+from sklearn.feature_selection import chi2, SelectKBest
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import r2_score, make_scorer
 from sklearn.ensemble import RandomForestRegressor
@@ -122,16 +123,25 @@ def run(options):
     # if options.verbose:
     #     print "End training at:   " + time.strftime("%H:%M:%S")
 
+    # Andrew: Do the chi2 feature selection
+    # Note: This actually made things worse, so I left this at 1 for now, which means select all features
+    chi2_fraction = 1
+    max_features = 10000
 
-    X_gpa = gpa_train_data.iloc[:,:].values
+    gpa_keep_indices = get_keep_indices(\
+        gpa_train_data, ordered_gpas, gpa_ids, chi2_fraction, max_features)
+    X_gpa = gpa_train_data[gpa_keep_indices].values
     y_gpa = ordered_gpas
 
-    X_grit = grit_train_data.iloc[:,:].values
+    grit_keep_indices = get_keep_indices(\
+        grit_train_data, ordered_grits, grit_ids, chi2_fraction, max_features)
+    X_grit = grit_train_data[grit_keep_indices].values
     y_grit = ordered_grits
 
-    X_hard = hard_train_data.iloc[:,:].values
+    hard_keep_indices = get_keep_indices(\
+        hard_train_data, ordered_hards, hard_ids, chi2_fraction, max_features)
+    X_hard = hard_train_data[hard_keep_indices].values
     y_hard = ordered_hards
-
 
     # if options.verbose:
     #     print "Scaling data"
@@ -204,9 +214,9 @@ def run(options):
     # if options.verbose:
     #     print "End cross validation at:   " + time.strftime("%H:%M:%S")
 
-    gpa_predict_X = gpa_data.values
-    grit_predict_X = grit_data.values
-    hard_predict_X = hard_data.values
+    gpa_predict_X = gpa_data[gpa_keep_indices].values
+    grit_predict_X = grit_data[grit_keep_indices].values
+    hard_predict_X = hard_data[hard_keep_indices].values
     gpa_cids = list(gpa_data.loc[:,'challengeID'].values)
     grit_cids = list(grit_data.loc[:,'challengeID'].values)
     hard_cids = list(hard_data.loc[:,'challengeID'].values)
@@ -302,6 +312,24 @@ def run(options):
     ofile.close()
 
 
+def get_keep_indices(background_df, train_labels, challenge_ids, fraction = 1, max_features = 10000):
+    '''
+    :return indices corresponding to features to keep
+    '''
+    k = min(int(background_df.shape[1] * fraction), max_features)
+    select = SelectKBest(lambda X, y: np.array([-1 * t for t in chi2(X, y)[0].tolist()]), k)
+    train_labels = [round(x) for x in train_labels]
+    select.fit(background_df.values, train_labels)
+    keep_indices = np.where(select.get_support())[0].tolist()
+    drop_indices = list(set(range(background_df.shape[1])) - set(keep_indices))
+    print "  - Using this many features: %s" % len(keep_indices)
+    if len(drop_indices) < 100:
+        print "    - Dropping these columns: %s" % background_df.columns[drop_indices].values.tolist()
+    if len(keep_indices) < 100:
+        print "    - Keeping these columns: %s" % background_df.columns[keep_indices].values.tolist()
+    return keep_indices
+
 
 if __name__ == "__main__":
     main()
+
