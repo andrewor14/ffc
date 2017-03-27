@@ -196,20 +196,10 @@ Given a new sample $x$, a single regression tree determines which leaf represent
 \subsection{Hyperparameter tuning}
 \label{sec:hyperparametertuning}
 
-[TODO: WRITE ME MORE]
-
-For continuous variables, we used the $\texttt{GridSearchCV}$ method from the $\texttt{scikit-learn}$ Python package to tune hyperparameters using cross-validation. We examined all combinations of hyperparameters in Figure~\ref{fig:contparams}. $\texttt{n\textunderscore estimators}$ represents the number of regression trees trained, $\texttt{max\textunderscore features}$ represents the portion of all features to examine while generating splits, and $\texttt{min\textunderscore samples\textunderscore split}$ represents the minimum number of samples in a node before it is allowed to split.
+We used cross-validation to tune hyperparameters for the random forest regressors and classifiers used to predict response variables. We tuned over $\texttt{n\textunderscore estimators}$ representing the number of regression trees trained, $\texttt{max\textunderscore features}$ representing the portion of all features to examine while generating splits, and $\texttt{min\textunderscore samples\textunderscore split}$ representing the minimum number of samples in a node before it is allowed to split. Specifically, we used the $\texttt{GridSearchCV}$ and $\texttt{RandomSearchCV}$ methods from the $\texttt{scikit-learn}$ Python package. Figure~\ref{fig:params} denotes the values which we tested for each hyperparameter in both the continuous regression (Figure~\ref{fig:contparams}) and boolean classification (Figure~\ref{fig:boolparams}) cases.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.35\textwidth}
-    \begin{align*}
-      &\texttt{[TODO: WRITE~ME]}
-    \end{align*}
-    \caption{Options for boolean classification}
-    \label{fig:boolparams}
-  \end{subfigure}
-  \hfill
   \begin{subfigure}[b]{0.35\textwidth}
     \begin{align*}
       &\texttt{n\textunderscore estimators}:~50,~75,~100\\
@@ -219,9 +209,36 @@ For continuous variables, we used the $\texttt{GridSearchCV}$ method from the $\
     \caption{Options for continuous regression}
     \label{fig:contparams}
   \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.35\textwidth}
+    \begin{align*}
+      &\texttt{n\textunderscore estimators}:~50,~100\\
+      &\texttt{max\textunderscore features}:~0.75,~1.0\\
+      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25
+    \end{align*}
+    \caption{Options for boolean classification}
+    \label{fig:boolparams}
+  \end{subfigure}
   \caption{Hyperparameter options}
   \label{fig:params}
 \end{figure}
+
+The results of this cross-validation hyperparameter tuning are shown in Table~\ref{tab:optimalparams}. Note that different values are optimal for different labels.
+
+\begin{table}[H]
+  \centering
+  \fontsize{9}{11}\selectfont
+  \begin{tabular}{| c | c | c | c | c | c | c | c |}
+    \hline
+    ~ & \texttt{gpa} & \texttt{grit} & \texttt{materialHardship} & \texttt{eviction} & \texttt{layoff} & \texttt{jobTraining} \\ \hline
+    \texttt{n\textunderscore estimators} & 1 & 1 & 1 & 1 & 1 & 1 \\
+    \texttt{max\textunderscore features} & 1 & 1 & 1 & 1 & 1 & 1 \\
+    \texttt{min\textunderscore samples\textunderscore split} & 1 & 1 & 1 & 1 & 1 & 1 \\
+    \hline
+  \end{tabular}
+  \caption{Optimal hyperparameters for each label}
+  \label{tab:optimalparams}
+\end{table}
 
 % The default parameters of the decision tree and random forest classifiers in \texttt{scikit-learn} did not yield good accuracy. Thus, for these models, we experimented with different sets of hyperparameters by trial and error. More specifically, the parameter grid we explored was:
 % \begin{align*}
