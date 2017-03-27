@@ -109,15 +109,13 @@ All source code is available on Github at \cite{myrepo}.
 \section{Classification}
 \label{sec:classification}
 
-[TODO: WRITE ME]
-
 We tested several classification and regression methods (detailed in Section~\ref{sec:intro}), but ultimately used random forest methods for both classification and regression tasks. Here we discuss in more detail the specifics of random forest regression models.
 
 Random forest regression methods are used to combine multiple regression trees. The random forest regression algorithm draws uniformly at random $m$ subsets of the training data. The algorithm then trains a regression tree on each of the subsets.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.75\textwidth]{rt.pdf}
+  \includegraphics[trim={0 5cm 0 5cm}, width=0.75\textwidth]{rt.pdf}
   \caption{An example regression tree, borrowed from \cite{rffig}}
   \label{fig:regtree}
 \end{figure}
