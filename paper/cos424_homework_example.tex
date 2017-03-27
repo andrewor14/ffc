@@ -109,24 +109,32 @@ All source code is available on Github at \cite{myrepo}.
 \section{Classification}
 \label{sec:classification}
 
-We tested several classification and regression methods (detailed in Section~\ref{sec:intro}), but ultimately used random forest methods for both classification and regression tasks. Here we discuss in more detail the specifics of random forest regression models.
+We tested several classification and regression methods (detailed in Section~\ref{sec:intro}), but ultimately used random forest methods for both classification and regression tasks. Here we discuss in more detail the specifics of random forest regression.
 
 Random forest regression methods are used to combine multiple regression trees. The random forest regression algorithm draws uniformly at random $m$ subsets of the training data. The algorithm then trains a regression tree on each of the subsets.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[trim={0 5cm 0 5cm}, width=0.75\textwidth]{rt.pdf}
+  \includegraphics[trim={0 6cm 0 6cm}, width=0.75\textwidth]{rt.pdf}
   \caption{An example regression tree, borrowed from \cite{rffig}}
   \label{fig:regtree}
 \end{figure}
 
-Similar to decision trees, regression trees split samples at branch points based on feature values (see Figure~\ref{fig:regtree}). Given training samples $x_i$ and (continuous) training response variables $y_i$, branch points partition all branch points are determined by minimizing $RSS$ defined as 
+In the same manner as decision trees, regression trees split samples at branch points based on feature values (see Figure~\ref{fig:regtree}). Given training samples $x_i$ and (continuous) training response variables $y_i$, regression trees are built in the following manner.
+
+\begin{enumerate}
+  \item Select the optimal feature $f$ and value $v_f$ for branching by minimizing $RSS$
+  \item Partition samples into $L = \{i | x_{if} \leq v_f\}$ and $R = \{j | x_{jf} > v_f\}$
+  \item Recurse on the subsets $L$ and $R$ of input data
+\end{enumerate}
+
+with $RSS$ defined as
 
 \begin{align*}
   RSS &= \sum_{i \in L} (y_i - y_L^*)^2 + \sum_{j \in R} (y_j - y_R^*)^2
 \end{align*}
 
-where $L$ is the set of all samples represented in a leaf of the left subtree of the branch point, $R$ is the set of all samples represented by a leaf in the righthand subtree, $y_L^* = \frac{1}{\lvert L \rvert} \sum_{i \in L} y_i $ is the mean of all response variables corresponding to samples in the left subtree of the branch point, and $y_R^* = \frac{1}{\lvert R \rvert} \sum_{j \in R} y_j$ is the mean of all response variables corresponding to samples in the righthand subtree.
+and where $y_L^* = \frac{1}{\lvert L \rvert} \sum_{i \in L} y_i $ is the mean of all response variables corresponding to samples in the left subtree of the branch point, and $y_R^* = \frac{1}{\lvert R \rvert} \sum_{j \in R} y_j$ is the mean of all response variables corresponding to samples in the righthand subtree.
 
 Given a new sample $x$, a single regression tree determines which leaf represents $x$ and assigns to $x$ the predicted $y$ value of the mean of all response values represented by that leaf. Random forest regressors, given a new sample $x$, return as a prediction the average of the responses of each regression tree.
 
