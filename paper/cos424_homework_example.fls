@@ -86,6 +86,12 @@ INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/float/float.sty
 INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/float/float.sty
+INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/caption/subcaption.sty
+INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/caption/subcaption.sty
+INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/caption/caption.sty
+INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/caption/caption.sty
+INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/caption/caption3.sty
+INPUT /usr/local/texlive/2016/texmf-dist/tex/latex/caption/caption3.sty
 INPUT cos424_homework_example.aux
 INPUT cos424_homework_example.aux
 OUTPUT cos424_homework_example.aux
@@ -157,6 +163,13 @@ INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
 INPUT rt.pdf
 INPUT ./rt.pdf
 INPUT ./rt.pdf
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/times/ptmr7t.tfm
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/courier/pcrr7t.tfm
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/times/ptmr7t.tfm
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/courier/pcrr7t.tfm
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/times/ptmr7t.tfm
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/vf/adobe/times/ptmr7t.vf
+INPUT /usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
 INPUT cos424_homework_example.aux
 INPUT ./cos424_homework_example.out
 INPUT ./cos424_homework_example.out

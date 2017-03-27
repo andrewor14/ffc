@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1490643243 "cos424_homework_example.tex" "cos424_homework_example.pdf" "cos424_homework_example" 1490643244
+["pdflatex"] 1490647713 "cos424_homework_example.tex" "cos424_homework_example.pdf" "cos424_homework_example" 1490647714
   "/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2016/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/courier/pcrr7t.tfm" 1136768653 960 379cc0019370a9e0208a0a3f949f847a ""
@@ -62,6 +62,9 @@
   "/usr/local/texlive/2016/texmf-dist/tex/latex/base/article.cls" 1459635588 19821 310da678527a7dfe2a02c88af38079b7 ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/base/size10.clo" 1459635588 8292 e897c12e1e886ce77fe26afc5d470886 ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/bbm-macros/bbm.sty" 1191314257 1644 1e0d54b051369c3f457872824cac219f ""
+  "/usr/local/texlive/2016/texmf-dist/tex/latex/caption/caption.sty" 1456094605 66233 8b81cfab95a1f8fc2f0f6c89415b087a ""
+  "/usr/local/texlive/2016/texmf-dist/tex/latex/caption/caption3.sty" 1456094605 64437 7aae26f62358cb5be7cae9d865fab5b8 ""
+  "/usr/local/texlive/2016/texmf-dist/tex/latex/caption/subcaption.sty" 1456094605 4562 7c66baa8431efe6fc61c7371f5691815 ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/eso-pic/eso-pic.sty" 1437606041 11954 3abdeb9fbc956bcd048295dd83dd5e7c ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/float/float.sty" 1137110151 6749 16d2656a1984957e674b149555f1ea1d ""
   "/usr/local/texlive/2016/texmf-dist/tex/latex/graphics-cfg/color.cfg" 1459978653 1213 620bba36b25224fa9b7e1ccb4ecb76fd ""
@@ -94,12 +97,12 @@
   "/usr/local/texlive/2016/texmf-var/web2c/pdftex/pdflatex.fmt" 1463979169 3873397 413fbfbbedb8e719ddc392043a7add02 ""
   "/usr/local/texlive/2016/texmf.cnf" 1463979140 577 2938757e76f31531e65cc647e3507693 ""
   "cos424.sty" 1490634823 8651 24f48c63cd84f4bdae68419332872a9b ""
-  "cos424_homework_example.aux" 1490643244 3038 6706f86fd3d5d7bf3190666e79f8368f ""
-  "cos424_homework_example.out" 1490643244 595 d82b928f720e2e208c762c104d3e9728 ""
-  "cos424_homework_example.tex" 1490643243 22082 f822b3f2b9e3146698bef2f3dc70a3f5 ""
+  "cos424_homework_example.aux" 1490647714 3750 f3db87fbd7aa222e72fc0f6d390cef5f ""
+  "cos424_homework_example.out" 1490647714 595 d82b928f720e2e208c762c104d3e9728 ""
+  "cos424_homework_example.tex" 1490647712 23378 605f2f42b35a14eb926abc0a879fdc27 ""
   "rt.pdf" 1490641644 53550 ef1881ea342257ed4d8a61e9ee780d5a ""
   (generated)
+  "cos424_homework_example.out"
+  "cos424_homework_example.log"
   "cos424_homework_example.aux"
   "cos424_homework_example.pdf"
-  "cos424_homework_example.log"
-  "cos424_homework_example.out"

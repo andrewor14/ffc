@@ -9,6 +9,7 @@
 \usepackage{bm,bbm}
 \usepackage{amssymb}
 \usepackage{float}
+\usepackage{subcaption}
 \title{Fragile Families Challenge}
 
 \author{
@@ -106,8 +107,8 @@ All source code is available on Github at \cite{myrepo}.
 
 % We experimented with different values of $k$ depending on the dataset. For the smaller dataset, we used $k = 463$, which throws approximately 10\% of the remaining features after removing rare words and stop words. For the larger dataset, we used $k = 4000$, which throws about around 40\% of the remaining features.
 
-\section{Classification}
-\label{sec:classification}
+\section{Regression}
+\label{sec:regression}
 
 We tested several classification and regression methods (detailed in Section~\ref{sec:intro}), but ultimately used random forest methods for both classification and regression tasks. Here we discuss in more detail the specifics of random forest regression.
 
@@ -195,7 +196,32 @@ Given a new sample $x$, a single regression tree determines which leaf represent
 \subsection{Hyperparameter tuning}
 \label{sec:hyperparametertuning}
 
-[TODO: WRITE ME]
+[TODO: WRITE ME MORE]
+
+For continuous variables, we used the $\texttt{GridSearchCV}$ method from the $\texttt{scikit-learn}$ Python package to tune hyperparameters using cross-validation. We examined all combinations of hyperparameters in Figure~\ref{fig:contparams}. $\texttt{n\textunderscore estimators}$ represents the number of regression trees trained, $\texttt{max\textunderscore features}$ represents the portion of all features to examine while generating splits, and $\texttt{min\textunderscore samples\textunderscore split}$ represents the minimum number of samples in a node before it is allowed to split.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.35\textwidth}
+    \begin{align*}
+      &\texttt{[TODO: WRITE~ME]}
+    \end{align*}
+    \caption{Options for boolean classification}
+    \label{fig:boolparams}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.35\textwidth}
+    \begin{align*}
+      &\texttt{n\textunderscore estimators}:~50,~75,~100\\
+      &\texttt{max\textunderscore features}:~0.75,~1.0\\
+      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25,~50
+    \end{align*}
+    \caption{Options for continuous regression}
+    \label{fig:contparams}
+  \end{subfigure}
+  \caption{Hyperparameter options}
+  \label{fig:params}
+\end{figure}
 
 % The default parameters of the decision tree and random forest classifiers in \texttt{scikit-learn} did not yield good accuracy. Thus, for these models, we experimented with different sets of hyperparameters by trial and error. More specifically, the parameter grid we explored was:
 % \begin{align*}
