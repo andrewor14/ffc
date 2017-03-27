@@ -24,11 +24,11 @@ orig_label_file = join(base_dir, "train.csv")
 out_file = "andrew_prediction.csv"
 
 name_to_model = {
-  'bnb': lambda: BernoulliNB(),
+  #'bnb': lambda: BernoulliNB(),
   #'mnb': lambda: MultinomialNB(),
   #'svm': lambda: make_svm_model(),
   #'dt': lambda: make_dt_model(),
-  #'rf': lambda: make_rf_model(),
+  'rf': lambda: make_rf_model(),
   #'gbc': lambda: make_gbc_model(),
   #'knn': lambda: KNeighborsClassifier()
 }
