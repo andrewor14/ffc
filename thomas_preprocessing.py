@@ -15,12 +15,29 @@ def parse_data(inputcsv):
 # From ``MissingDataScript.py``, provided as a resource for Princeton cos424, Spring 2017
 def fillMissing(df):
     # replace NA's with mode
-    df = df.fillna(df.mode().iloc[0])
+    # df = df.fillna(df.mode().iloc[0])
     # if still NA, replace with 1
-    df = df.fillna(value=1)
+    # df = df.fillna(value=1)
     # replace negative values with 1
     num = df._get_numeric_data()
-    num[num < 0] = 1
+
+    coltypes = num.dtypes
+
+    # There should only be float64 and int64 types after _get_numeric_data()
+    floatcols = (coltypes == np.float64)
+    intcols = (coltypes == np.int64)
+
+    means = num.mean(0)
+    mean_num = pd.DataFrame([means for i in xrange(len(num.index))])
+    modes = num.mode(0)
+    mode_num = pd.DataFrame([modes for i in xrange(len(num.index))])
+
+    num[num.loc[:,num.dtypes==np.float64].lt(0)] = mean_num
+    num[num.loc[:,num.dtypes==np.int64].lt(0)] = mode_num
+
+    num = num._get_numeric_data()
+
+    num = num.fillna(value=1)
 
     return num
 
@@ -55,12 +72,12 @@ def run(options):
     data = parse_data(options.background)
 
     if options.verbose:
-        print "Calculating portions of entries that are NA"
-    na_portions = column_na_portions(data)
-
-    if options.verbose:
         print "Calculating portions of entries that are negative"
     ne_portions = column_ne_portions(data)
+
+    if options.verbose:
+        print "Calculating portions of entries that are NA"
+    na_portions = column_na_portions(data)
 
     if options.verbose:
         print "Filling NA values"
