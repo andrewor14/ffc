@@ -23,22 +23,22 @@ label_file = join(base_dir, "train.out.csv")
 orig_label_file = join(base_dir, "train.csv")
 out_file = "andrew_prediction.csv"
 
-n_folds = 5
-chi2_fraction = 1
-max_features = 10000
-just_training = False
-label_for_training = "jobTraining"
-model_for_writing = "knn"
-
 name_to_model = {
-  #'bnb': lambda: BernoulliNB(),
+  'bnb': lambda: BernoulliNB(),
   #'mnb': lambda: MultinomialNB(),
   #'svm': lambda: make_svm_model(),
   #'dt': lambda: make_dt_model(),
   #'rf': lambda: make_rf_model(),
   #'gbc': lambda: make_gbc_model(),
-  'knn': lambda: KNeighborsClassifier()
+  #'knn': lambda: KNeighborsClassifier()
 }
+
+n_folds = 5
+chi2_fraction = 1
+max_features = 10000
+just_training = False
+label_for_training = "jobTraining"
+model_for_writing = name_to_model.iteritems().next()[0]
 
 def main():
   print "Reading in %s..." % background_file
@@ -66,10 +66,6 @@ def make_gbc_model():
   return GridSearchCV(GradientBoostingClassifier(), param_grid)
 
 def make_svm_model():
-  #param_grid = [\
-  #  {'C': [1, 10, 100, 1000], 'kernel': ['linear']},\
-  #  {'C': [1, 10, 100, 1000], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}
-  #]  
   param_grid = [{'C':[0.1, 1, 10, 100]}]
   return BaggingClassifier(GridSearchCV(LinearSVC(), param_grid), n_jobs=4)
 
@@ -92,8 +88,6 @@ def get_keep_indices(background_df, train_labels, challenge_ids, fraction = 1, m
   '''
   :return indices corresponding to features to keep
   '''
-  #columns_to_drop = [c for c in background_df.columns.values.tolist()\
-  #  if "mothid" in c.lower() or "fathid" in c.lower() or c == "idnum" or c == "challengeID"]
   k = min(int(background_df.shape[1] * fraction), max_features)
   background_df_for_training = get_matching_rows(background_df, challenge_ids)
   select = SelectKBest(lambda X, y: np.array([-1 * t for t in chi2(X, y)[0].tolist()]), k)
@@ -186,6 +180,7 @@ def write_to_csv(label_df, orig_label_df, background_df, model_to_use):
   result = {}
   continuous_labels = ["gpa", "grit", "materialHardship"]
   boolean_labels = ["eviction", "layoff", "jobTraining"]
+  start_time = time.time()
   # Just fill these with all zeros for now
   for label_name in continuous_labels:
     result[label_name] = [0.0] * max_challenge_id
@@ -194,14 +189,16 @@ def write_to_csv(label_df, orig_label_df, background_df, model_to_use):
     result[label_name] = [None] * max_challenge_id
     train_df = label_df[~label_df[label_name].isnull()]
     train_labels = get_label(train_df, label_name)
-    train_challenge_ids = set(train_df["challengeID"].values.tolist())
+    train_challenge_ids = train_df["challengeID"].values.tolist()
+    train_challenge_ids_set = set(train_challenge_ids)
     # Do the chi2 reduction
     feature_keep_indices = get_keep_indices(\
-      background_df, train_labels, train_challenge_ids, chi2_fraction, max_features)
-    train_features = get_matching_rows(background_df, train_challenge_ids)[feature_keep_indices]
+      background_df, train_labels, train_challenge_ids_set, chi2_fraction, max_features)
+    train_features = get_matching_rows(\
+      background_df, train_challenge_ids_set)[feature_keep_indices]
     model = name_to_model[model_to_use]()
-    print "Training model for label '%s' using %s features and %s samples..." %\
-      (label_name, train_features.shape[1], train_features.shape[0])
+    print "Training model %s for label '%s' using %s features and %s samples..." %\
+      (model_to_use, label_name, train_features.shape[1], train_features.shape[0])
     model.fit(train_features.values, train_labels)
     if type(model) is GridSearchCV:
       print "  - Best hyperparameters were: %s" % model.best_params_
@@ -209,15 +206,19 @@ def write_to_csv(label_df, orig_label_df, background_df, model_to_use):
     for i, row in background_df.iterrows():
       challenge_id = int(row["challengeID"])
       result_index = challenge_id - 1
-      existing_labels = orig_label_df[orig_label_df["challengeID"] == challenge_id]
-      # If the value is already there, just use it
-      if False:#existing_labels.size > 0:
-        result[label_name][result_index] = existing_labels[label_name].fillna(False).values.tolist()[0]
-      # Otherwise we need to predict it using our model
-      else:
-        features = row[feature_keep_indices].values
-        predicted_label = round(model.predict_proba([features])[0][1]) == 1
-        result[label_name][result_index] = predicted_label
+      features = row[feature_keep_indices].values
+      predicted_label = round(model.predict_proba([features])[0][1]) == 1
+      result[label_name][result_index] = predicted_label
+    # What is the training error?
+    expected_labels = []
+    predicted_labels = []
+    for i, row in train_df.iterrows():
+      challenge_id = int(row["challengeID"])
+      result_index = challenge_id - 1
+      expected_labels += [1 if row[label_name] else 0]
+      predicted_labels += [result[label_name][result_index]]
+    elapsed = time.time() - start_time
+    print_result([(predicted_labels, expected_labels)], elapsed)
 
   # Write our prediction CSV
   print "Writing out predictions to %s..." % out_file
