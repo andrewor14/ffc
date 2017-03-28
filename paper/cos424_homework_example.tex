@@ -60,7 +60,7 @@ and the classifiers we evaluated are:
 \item Gradient Boosting Classifier (GBC)
 \end{enumerate}
 
-We used the \texttt{scikit-learn} \cite{scikitlearn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyperparameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
+We used the \texttt{scikit-learn} \cite{scikitlearn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that random forest performs the best. We used k-fold cross validation to tune the hyperparameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
 
 All source code is available on Github at \cite{myrepo}.
 
@@ -210,34 +210,13 @@ In the binary case, because there are significantly more \texttt{False} values t
 \subsection{Hyperparameter tuning}
 \label{sec:hyperparametertuning}
 
-We used $3$-fold cross validation to tune hyperparameters for our random forest models. We used the $\texttt{GridSearchCV}$ and $\texttt{RandomSearchCV}$ methods from the $\texttt{scikit-learn}$ library to perform cross validation. Figure~\ref{fig:params} lists the parameter space we explored. The optimal hyperparameters by label are summarized in Table~\ref{tab:optimalparams}.
-
-\begin{figure}[H]
-  \centering
-  \hfill
-  \begin{subfigure}[b]{0.35\textwidth}
-    \begin{align*}
-      &\texttt{n\textunderscore estimators}:~50,~75,~100\\
-      &\texttt{max\textunderscore features}:~0.75,~1.0\\
-      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25,~50
-    \end{align*}
-    \caption{Parameters for regression}
-    \label{fig:contparams}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.35\textwidth}
-    \begin{align*}
-      &\texttt{n\textunderscore estimators}:~50,~100\\
-      &\texttt{max\textunderscore features}:~0.75,~1.0\\
-      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25
-    \end{align*}
-    \caption{Parameters for classification}
-    \label{fig:boolparams}
-  \end{subfigure}
-  \caption{Hyperparameter space for random forest}
-  \label{fig:params}
-  \hfill
-\end{figure}
+We used $3$-fold cross validation to tune hyperparameters for our random forest models. We used the $\texttt{GridSearchCV}$ and $\texttt{RandomSearchCV}$ methods from the $\texttt{scikit-learn}$ library to perform cross validation. The parameter space we explored is listed as follows. The optimal hyperparameters by label are summarized in Table~\ref{tab:optimalparams}.
+\begin{align*}
+&\text{Parameters for regression} && \text{Parameters for classification}\\
+&\texttt{n\textunderscore estimators}: 50, 75, 100 && \texttt{n\textunderscore estimators}: 50, 100\\
+&\texttt{max\textunderscore features}: 0.75, 1.0 && \texttt{max\textunderscore features}: 0.75, 1.0\\
+&\texttt{min\textunderscore samples\textunderscore split}: 10, 25, 50 && \texttt{min\textunderscore samples\textunderscore split}: 10, 25
+\end{align*}
 
 \begin{table}[H]
   \centering
