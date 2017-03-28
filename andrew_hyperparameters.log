@@ -1,0 +1,47 @@
+Reading in data/background.out.csv...
+Reading in data/train.out.csv...
+Reading in data/train.csv...
+Training model rf for label 'eviction' using 9844 features and 1459 samples...
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'min_samples_leaf': 25}
+Predicting missing values for 'eviction'...
+/Library/Python/2.7/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Python/2.7/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+
+================================
+You guessed 1372/1459 = 94.037% correct.
+  - AUC: 0.5
+  - Precision: 0.0
+  - Recall: 0.0
+  - F1: 0.0
+  - Time (s): 534.780
+================================
+
+Training model rf for label 'layoff' using 9844 features and 1277 samples...
+  - Best hyperparameters were: {'max_features': 'auto', 'n_estimators': 50, 'min_samples_leaf': 25}
+Predicting missing values for 'layoff'...
+
+================================
+You guessed 1010/1277 = 79.092% correct.
+  - AUC: 0.5
+  - Precision: 0.0
+  - Recall: 0.0
+  - F1: 0.0
+  - Time (s): 990.703
+================================
+
+Training model rf for label 'jobTraining' using 9844 features and 1461 samples...
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'min_samples_leaf': 25}
+Predicting missing values for 'jobTraining'...
+
+================================
+You guessed 1115/1461 = 76.386% correct.
+  - AUC: 0.500116044373
+  - Precision: 0.25
+  - Recall: 0.00291545189504
+  - F1: 0.00576368876081
+  - Time (s): 1513.593
+================================
+
+Writing out predictions to andrew_prediction.csv...
