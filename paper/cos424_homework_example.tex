@@ -59,7 +59,7 @@ and the classifiers we evaluated are:
 \item Gradient Boosting Classifier (GBC)
 \end{enumerate}
 
-We used the \texttt{scikit-learn} implementation of the methods listed above. The metrics we used in our evaluation are the coefficient of determination ($R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyperparameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques.
+We used the \texttt{scikit-learn} \cite{scikitlearn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyperparameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
 
 All source code is available on Github at \cite{myrepo}.
 
@@ -124,14 +124,14 @@ We evaluated five schemes composed of combinations of the imputation and feature
 In our evaluation, we found that the \textit{no null} scheme yielded the best results for both continuous and binary labels. We decided to experiment with \textit{data type dependent imputation} because we found simply replacing all negative values with $1$ arbitrary. We also believed (incorrectly) that removing features with negative values in the \textit{negative proportions} scheme would help because negative values indicate invalid or missing answers.
 
 Similarly, \textit{chi-squared feature reduction} consistently led to worse results. In an effort to understand why this is the case, we confirmed that non-indicative features such as \texttt{challengeID} and \texttt{mothid1} (mother ID) had high $\chi^2$ scores, while hundreds of features had a $\chi^2$ score of 0. Oddly, even setting $k = 99.5\%$ of the total number of features led to a significant drop in accuracy for the binary case. 
-As such, we did not consider Chi-squared feature reduction further in our project.
+As such, we did not consider chi-squared feature reduction further in our project.
 
 \section{Classification and Regression}
 \label{sec:regression}
 
 We tested several classification and regression methods (detailed in Section~\ref{sec:intro}), but ultimately used random forest methods for both classification and regression tasks. Here we discuss in more detail the specifics of random forest regression.
 
-Random forest regression methods are used to combine multiple regression trees. The random forest regression algorithm draws uniformly at random $m$ subsets of the training data. The algorithm then trains a regression tree on each of the subsets.
+Random forest \cite{randomforest} regression methods are used to combine multiple regression trees. The random forest regression algorithm draws uniformly at random $m$ subsets of the training data. The algorithm then trains a regression tree on each of the subsets.
 
 \begin{figure}[H]
   \centering
@@ -258,18 +258,18 @@ The parameters we tuned are $\texttt{n\textunderscore estimators}$, which repres
 \subsection{Beating the odds}
 \label{sec:beatingtheodds}
 
-We were interested in determining which children ended the study with better metrics than we would predict with our model. Higher values of gpa and grit are considered better, while a lower value of material hardship is considered better. Therefore, we consider samples with higher gpa, higher grit, or lower material hardship than our predictions to have ``beaten the odds''. Similarly, we consider any sample that disagrees with our prediction and is False for eviction, False for layoff, or True for job training to have beaten the odds.
+We were interested in determining which children ended the study with better metrics than we would predict with our model. Higher values of gpa and grit are considered better, while a lower value of material hardship is considered better. Therefore, we consider samples with higher gpa, higher grit, or lower material hardship than our predictions to have ``beaten the odds''. Similarly, we consider any sample that disagrees with our prediction and is \texttt{False} for eviction, \texttt{False} for layoff, or \texttt{True} for job training to have beaten the odds.
 
 For each continuous variable, we ranked the samples by the margin to which they beat their prediction. We hoped to see high overlap in the tops of each of these ranked list. However, we found that there were no samples common to the top $100$ positions in all lists, and there were only ten samples common to the top $250$ samples in all lists.
 
-Because our best-performing model predicts False for all boolean variables for all samples, we observe no samples beating the odds for eviction or layoff, while every subject that has received job training has beaten the odds according to our model and definition.
+Because our best-performing model predicted \texttt{False} for all boolean variables for all samples, we observe no samples beating the odds for eviction or layoff, while every subject that has received job training has beaten the odds according to our model and definition.
 
-We hypothesize that we do not observe subjects who consistently beat the odds by a high margin because we train models for each variable independently using different hyperparameters. For future work, it would be interesting to train multiple labels together to see if larger overlaps occur between the subjects who beat the odds by the highest margins for each label.
+We hypothesize that we do not observe subjects consistently beating the odds across the labels because we train models for each variable independently using different hyperparameters. For future work, it would be interesting to train multiple labels together to see if larger overlaps occur between the subjects who beat the odds by the highest margins for each label.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-Due to the nature of the background data provided, we find that random forest methods perform best for both classification and regression problems. However, the fact that boolean training data is heavily skewed towards responses of ``False'' leads our random forest classification model to predict False for every test sample. Furthermore, there are many invalid responses throughout the background dataset. We hypothesize that this data sparsity causes standard feature selection techniques like chi-squared analysis to produce worse results.
+Due to the nature of the background data provided, we find that random forest methods perform best for both classification and regression problems. However, the fact that boolean training data is heavily skewed towards responses of \texttt{False} leads our random forest classification model to predict \texttt{False} for every test sample. Furthermore, there are many invalid responses throughout the background dataset. We hypothesize that this data sparsity causes standard feature selection techniques like chi-squared analysis to produce worse results.
 
 We also identified rankings subjects who beat the odds by the highest margin for continuous variables. Though there is little overlap between the tops of these rankings, we propose training a single predictive model on a combination of labels in order to better determine whether any subjects consistently beat the odds by high margins.
 
@@ -293,26 +293,8 @@ Future of Children: http://www.futureofchildren.org/
 \bibitem{randomforest}
 Breiman, Leo. "Random forests." Machine learning 45.1 (2001): 5-32.
 
-\bibitem{confidenceweight}
-Dredze, Mark, Koby Crammer, and Fernando Pereira. "Confidence-weighted linear classification." Proceedings of the 25th international conference on Machine learning. ACM, 2008.
-
-\bibitem{randomsubspace}
-Ho, Tin Kam. "The random subspace method for constructing decision forests." IEEE transactions on pattern analysis and machine intelligence 20.8 (1998): 832-844.
-
-\bibitem{individuallabel}
-Kotzias, Dimitrios, et al. "From group to individual labels using deep features." Proceedings of the 21th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining. ACM, 2015.
-
-\bibitem{textbook}
-Murphy, Kevin P. Machine learning: a probabilistic perspective. MIT press, 2012.
-
 \bibitem{scikitlearn}
 Pedregosa, Fabian, et al. "Scikit-learn: Machine learning in Python." Journal of Machine Learning Research 12.Oct (2011): 2825-2830.
-
-\bibitem{id3}
-Quinlan, J. Ross. "Induction of decision trees." Machine learning 1.1 (1986): 81-106.
-
-\bibitem{rffig}
-Elith, Jane, John R. Leathwick, and Trevor Hastie. "A working guide to boosted regression trees." Journal of Animal Ecology 77.4 (2008): 802-813.
  
 \end{thebibliography}
 
