@@ -61,7 +61,7 @@ and the classifiers we evaluated are:
 \item Gradient Boosting Classifier (GBC)
 \end{enumerate}
 
-We used the \texttt{sklearn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyper parameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
+We used the \texttt{scikit-learn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyperparameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
 
 All source code is available on Github at \cite{myrepo}.
 
@@ -142,7 +142,7 @@ Random forest regression methods are used to combine multiple regression trees. 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[trim={0 5cm 0 6cm}, width=0.75\textwidth]{rt.pdf}
+  \includegraphics[width=0.7\textwidth]{rf.png}
   \caption{An example regression tree, borrowed from \cite{rffig}}
   \label{fig:regtree}
 \end{figure}
@@ -223,6 +223,7 @@ We used cross-validation to tune hyperparameters for the random forest regressor
 
 \begin{figure}[H]
   \centering
+  \hfill
   \begin{subfigure}[b]{0.35\textwidth}
     \begin{align*}
       &\texttt{n\textunderscore estimators}:~50,~75,~100\\
@@ -244,6 +245,7 @@ We used cross-validation to tune hyperparameters for the random forest regressor
   \end{subfigure}
   \caption{Hyperparameter options}
   \label{fig:params}
+  \hfill
 \end{figure}
 
 The results of this cross-validation hyperparameter tuning are shown in Table~\ref{tab:optimalparams}. Note that different values are optimal for different labels.
