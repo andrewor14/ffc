@@ -219,7 +219,7 @@ Given a new sample $x$, a single regression tree determines which leaf represent
 \subsection{Hyperparameter tuning}
 \label{sec:hyperparametertuning}
 
-We used cross-validation to tune hyperparameters for the random forest regressors and classifiers used to predict response variables. We tuned over $\texttt{n\textunderscore estimators}$ representing the number of regression trees trained, $\texttt{max\textunderscore features}$ representing the portion of all features to examine while generating splits, and $\texttt{min\textunderscore samples\textunderscore split}$ representing the minimum number of samples in a node before it is allowed to split. Specifically, we used the $\texttt{GridSearchCV}$ and $\texttt{RandomSearchCV}$ methods from the $\texttt{scikit-learn}$ Python package. Figure~\ref{fig:params} denotes the values which we tested for each hyperparameter in both the continuous regression (Figure~\ref{fig:contparams}) and boolean classification (Figure~\ref{fig:boolparams}) cases.
+We used cross-validation to tune hyperparameters for the random forest regressors and classifiers used to predict response variables. We chose to tune $\texttt{n\textunderscore estimators}$ representing the number of regression trees trained, $\texttt{max\textunderscore features}$ representing the portion of all features to examine while generating splits, and $\texttt{min\textunderscore samples\textunderscore split}$ representing the minimum number of samples in a node before it is allowed to split. Each of these hyperparameters provides a method avoid overfitting, as they each place restrictions on the growth of decision and regression trees. Specifically, we used the $\texttt{GridSearchCV}$ and $\texttt{RandomSearchCV}$ methods from the $\texttt{scikit-learn}$ Python package. Figure~\ref{fig:params} denotes the values which we tested for each hyperparameter in both the continuous regression (Figure~\ref{fig:contparams}) and boolean classification (Figure~\ref{fig:boolparams}) cases.
 
 \begin{figure}[H]
   \centering
@@ -313,68 +313,18 @@ In addition to accuracy, we evaluated boolean variable predictions with precisio
   \end{minipage}
 \end{table}
 
-% \begin{table}[H]
-%   \centering
-%   begin{tabular}{| c | c | c | c | c | c |}
-%     \hline
-%     ~ & BNB & MNB & KNN & RFC & GBC \\ \hline
-%     Accuracy & 0.761 & 0.584 & 0.725 & 0.765 & 0.679 \\
-%     Precision & 0.040 & 0.244 & 0.253 & 0.000 & 0.204 \\
-%     Recall & 0.003 & 0.362 & 0.085 & 0.000 & 0.130 \\
-%     F1 & 0.005 & 0.285 & 0.126 & 0.000 & 0.157 \\
-%     \hline
-%   \end{tabular}
-%   \caption{Evaluation of different models for binary classification of \texttt{jobTraining}}
-%   \label{tab:boolresults}
-% \end{table}
+We found that random forests performed best for both $R^2$ and Accuracy. However, the random forest classifier model we used resulted in predictions of False for all boolean variables and for all samples. Therefore, we observe a precision, recall, and F1 score of 0 for the random forest classifier.
 
-% \begin{table}[H]
-%   \centering
-%   \begin{tabular}{| c | c | c | c |}
-%     \hline
-%     ~ & LRL & SVR & RFR \\ \hline
-%     $R^2$ & 0.063 & 0.123 & 0.157 \\
-%     \hline
-%   \end{tabular}
-%   \caption{Evaluation of different models for continuous regression of \texttt{gpa}}
-%   \label{tab:contresults}
-% \end{table}
+This dataset is likely not linearly separable under reasonable imputation and feature selection schemes. Therefore, we expect that random forest regression would perform better than either support vector regression or Lasso-
 
-% \item Linear Regression with Lasso Regularization (LRL)
-% \item Support Vector Regression (SVR)
-% \item Random Forest Regression (RFR)
+\subsection{Beating the odds}
+\label{sec:beatingtheodds}
 
-% \begin{table}[htbp]
-% \small
-%    \centering
-%    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
-%    \hline
-%     &  \multicolumn{5}{c|}{2,400 sentiment labelled sentences} &
-%   \multicolumn{5}{c|}{10,000 Amazon reviews}  \\
-%   \cline{2-11}
-%    Classifier & Acc & Prec & Recall & $F_1$ & AUC ROC & Acc & Prec & Recall & $F_1$ & AUC ROC \\ \hline \hline
-%    mybnb & 0.71 & 0.67 & 0.76 & 0.71 & 0.69 & 0.51 & 0.68 & 0.27 & 0.38 & 0.55 \\\hline
-%    mymnb & 0.69 & 0.66 & 0.75 & 0.69 & 0.68 & 0.66 & 0.75 & 0.61 & 0.67 & 0.67 \\\hline
-%    bnb & 0.62 & 0.66 & 0.68 & 0.62 & 0.75 & 0.78 & 0.78 & 0.85 & 0.81 & 0.86 \\\hline
-%    mnb & 0.62 & 0.65 & 0.69 & 0.63 & 0.75 & 0.79 & 0.81 & 0.83 & 0.82 & 0.86 \\\hline
-%    dt & 0.62 & 0.62 & 0.70 & 0.63 & 0.65 & 0.70 & 0.72 & 0.78 & 0.75 & 0.75 \\\hline
-%    rf & 0.60 & 0.65 & 0.56 & 0.57 & 0.69 & 0.73 & 0.74 & 0.82 & 0.78 & 0.81 \\\hline
-%    \end{tabular}
-%    \caption{Accuracy, precision, recall, F1 score, and area under ROC curve for all models evaluated under two datasets of different sizes using 5-fold cross validation. \texttt{mybnb} and \texttt{mymnb} refer to the custom implementation of Bernoulli naive Bayes and multinomial naive Bayes respectively. The rest of the classifiers use implementations provided by \texttt{scikit-learn}.}
-%    \label{tab:classifiers}
-% \end{table}
+We were interested in determining which children ended the study with better metrics than we would predict with our model. Higher values of gpa and grit are considered better, while a lower value of material hardship is considered better. Therefore, we consider samples with higher gpa, higher grit, or lower material hardship than our predictions to have ``beaten the odds''. Similarly, we consider any sample that disagrees with our prediction and is False for eviction, False for layoff, or True for job training to have beaten the odds.
 
-% Table~\ref{tab:classifiers} shows that the characteristics of each of the classification methods vary across datasets. Training the model on the larger dataset generally improves all metrics compared to training it on the smaller dataset. The notable exceptions are \texttt{mybnb} and \texttt{mymnb}, which are custom python implementations of Bernoulli naive Bayes and multinomial naive Bayes respectively. These simplistic implementations actually outperform their counterparts in \texttt{scikit-learn} for small datasets, but do not scale as well to larger datasets.
+For each continuous variable, we ranked the samples by the margin to which they beat their prediction. We hoped to see high overlap in the tops of each of these ranked list. However, we found that there were no samples common to the top $100$ positions in all lists, and there were only ten samples common to the top $250$ samples in all lists.
 
-% Our experiments show that \texttt{bnb} and \texttt{mnb} yield the best results among all the classifiers we explored. Even on the smaller dataset, although all the classifiers have similar accuracy, \texttt{bnb} and \texttt{mnb} have consistently higher area under the ROC curve than \texttt{dt} and \texttt{rf}. When extended to the larger dataset, the difference becomes more pronounced, both in terms of the AUC and all other metrics.
-
-% These results are somewhat surprising; despite tuning the hyperparameters, we still saw low accuracy on \texttt{rf} relative to the linear classifiers. The following is one potentially illuminating example taken from the Amazon dataset. The sentiment is negative (0) but the scores given by \texttt{dt} and \texttt{rf} are 0.86 and 0.81 respectively, while the scores given by \texttt{bnb} and \texttt{bnb} are 0.28 and 0.30 respectively.
-
-% \begin{quote}
-% This video's only redeeming quality is its excellent pilates instruction. Like all Stott videos this one takes extra care to explain proper form and technique. Unfortunately, the aerobics portion is extremely boring and simple. You just walk in place the whole time with no interesting variations.
-% \end{quote}
-
-% This example is potentially confusing because it contains many words that are strongly correlated with positive or negative sentiments, such as 'excellent', 'proper', 'unfortunately', 'boring'. However, neither the tree classification methods nor the naive Bayes methods were lukewarm about their answers (i.e. reporting a score around 0.50). The certainty that this example is positive (which is incorrect) is only reduced from 0.86 to 0.81 when switching from \texttt{dt} to \texttt{rf} with 100 trees, suggesting that the number of trees may still be too low or the hyperparameters may not be sufficiently tuned. It is also possible that even the larger dataset used in this experiment is not sufficiently large for random forests to generalize well.
+Because our best-performing model predicts False for all boolean variables for all samples, we observe no samples beating the odds for eviction or layoff, while every subject that has received job training has beaten the odds according to our model and definition.
 
 \section{Conclusion}
 \label{sec:conclusion}
