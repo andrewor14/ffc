@@ -1,0 +1,97 @@
+Reading in data/background.out.csv...
+Reading in data/train.out.csv...
+Reading in data/train.csv...
+Running model 'knn'...
+  - Finished running on fold 0, used 9844 features, 1169 training samples, took 4.54713487625 s
+  - Finished running on fold 1, used 9844 features, 1169 training samples, took 4.36422801018 s
+  - Finished running on fold 2, used 9844 features, 1168 training samples, took 4.57740902901 s
+  - Finished running on fold 3, used 9844 features, 1170 training samples, took 4.7668838501 s
+  - Finished running on fold 4, used 9844 features, 1168 training samples, took 4.26311993599 s
+
+================================
+You guessed 211/292 = 72.487% correct.
+  - AUC: 0.503380075646
+  - Precision: 0.252780337942
+  - Recall: 0.0852352447038
+  - F1: 0.126260164459
+  - Time (s): 22.519
+================================
+
+Running model 'bnb'...
+  - Finished running on fold 0, used 9844 features, 1169 training samples, took 0.773874998093 s
+  - Finished running on fold 1, used 9844 features, 1169 training samples, took 0.672511100769 s
+  - Finished running on fold 2, used 9844 features, 1168 training samples, took 0.70849609375 s
+  - Finished running on fold 3, used 9844 features, 1170 training samples, took 0.726867198944 s
+  - Finished running on fold 4, used 9844 features, 1168 training samples, took 0.679394960403 s
+/Library/Python/2.7/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/Library/Python/2.7/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+
+================================
+You guessed 222/292 = 76.112% correct.
+  - AUC: 0.498290007497
+  - Precision: 0.04
+  - Recall: 0.00289855072464
+  - F1: 0.00540540540541
+  - Time (s): 3.562
+================================
+
+Running model 'mnb'...
+  - Finished running on fold 0, used 9844 features, 1169 training samples, took 0.339485883713 s
+  - Finished running on fold 1, used 9844 features, 1169 training samples, took 0.331992149353 s
+  - Finished running on fold 2, used 9844 features, 1168 training samples, took 0.324310064316 s
+  - Finished running on fold 3, used 9844 features, 1170 training samples, took 0.44876408577 s
+  - Finished running on fold 4, used 9844 features, 1168 training samples, took 0.331209897995 s
+
+================================
+You guessed 170/292 = 58.399% correct.
+  - AUC: 0.506458014332
+  - Precision: 0.243628730772
+  - Recall: 0.362297778808
+  - F1: 0.284562109901
+  - Time (s): 1.776
+================================
+
+Running model 'rf'...
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'min_samples_leaf': 25}
+  - Finished running on fold 0, used 9844 features, 1169 training samples, took 305.428606987 s
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'min_samples_leaf': 25}
+  - Finished running on fold 1, used 9844 features, 1169 training samples, took 303.945581913 s
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'min_samples_leaf': 10}
+  - Finished running on fold 2, used 9844 features, 1168 training samples, took 299.190520048 s
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'min_samples_leaf': 10}
+  - Finished running on fold 3, used 9844 features, 1170 training samples, took 289.853380919 s
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'min_samples_leaf': 25}
+  - Finished running on fold 4, used 9844 features, 1168 training samples, took 293.791203976 s
+
+================================
+You guessed 223/292 = 76.524% correct.
+  - AUC: 0.5
+  - Precision: 0.0
+  - Recall: 0.0
+  - F1: 0.0
+  - Time (s): 1492.210
+================================
+
+Running model 'gbc'...
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'learning_rate': 1.0, 'min_samples_leaf': 10}
+  - Finished running on fold 0, used 9844 features, 1169 training samples, took 383.616358042 s
+  - Best hyperparameters were: {'max_features': 'auto', 'n_estimators': 100, 'learning_rate': 1.0, 'min_samples_leaf': 10}
+  - Finished running on fold 1, used 9844 features, 1169 training samples, took 375.347397089 s
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 100, 'learning_rate': 1.0, 'min_samples_leaf': 25}
+  - Finished running on fold 2, used 9844 features, 1168 training samples, took 369.680337906 s
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 50, 'learning_rate': 1.0, 'min_samples_leaf': 25}
+  - Finished running on fold 3, used 9844 features, 1170 training samples, took 359.712645054 s
+  - Best hyperparameters were: {'max_features': 0.75, 'n_estimators': 100, 'learning_rate': 1.0, 'min_samples_leaf': 25}
+  - Finished running on fold 4, used 9844 features, 1168 training samples, took 368.106462955 s
+
+================================
+You guessed 198/292 = 67.900% correct.
+  - AUC: 0.489022584712
+  - Precision: 0.204176880396
+  - Recall: 0.12982828239
+  - F1: 0.157078699012
+  - Time (s): 1856.464
+================================
+

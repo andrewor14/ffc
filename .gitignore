@@ -1,7 +1,6 @@
 .DS_Store
 *.pdf
 data
-*.log
 *.swp
 submission/
 ignorepls/
