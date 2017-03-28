@@ -48,17 +48,17 @@ The Fragile Families Challenge is an open challenge for data scientists to apply
 In this paper, we propose our solution to the Fragile Families Challenge. We modeled continuous labels and binary labels separately, using regression methods for the former and classification methods for the latter. The regression methods we evaluated are:
 
 \begin{enumerate}
-\item Linear Regression with Lasso Regularization
-\item Support Vector Regression
-\item Random Forest Regression
+\item Linear Regression with Lasso Regularization (LRL)
+\item Support Vector Regression (SVR)
+\item Random Forest Regression (RFR)
 \end{enumerate}
 and the classifiers we evaluated are:
 \begin{enumerate}
-\item Bernoulli Naive Bayes Classifier
-\item Multinomial Naive Bayes Classifier
-\item K-Nearest Neighbors Classifier
-\item Random Forest Classifier
-\item Gradient Boosting Classifier
+\item Bernoulli Naive Bayes Classifier (BNB)
+\item Multinomial Naive Bayes Classifier (MNB)
+\item K-Nearest Neighbors Classifier (KNN)
+\item Random Forest Classifier (RFC)
+\item Gradient Boosting Classifier (GBC)
 \end{enumerate}
 
 We used the \texttt{sklearn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyper parameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
