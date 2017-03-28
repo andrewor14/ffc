@@ -78,22 +78,50 @@ The label data consists of six labels we wish to predict based on the features i
 
 % The reasons for using this second dataset are twofold. First, it is much larger than the first one, which is conducive to more general models and thus lower generalization error. Many commonly used text analysis techniques we explored did not have a significant impact on the accuracy when training on the smaller dataset. Second, the Amazon dataset comes with ratings (out of 5 stars) in addition to just positive or negative labels. This enables us to generalize the techniques used in this project to multi-class classification in the future.
 
-\section{Preprocessing}
-\label{sec:preprocessing}
+\section{Data processing}
+\label{sec:datapreprocessing}
 
-[TODO: WRITE ME]
+We used several imputation and feature selection methods to prepare the background data before training classification and regression models. Here we describe the individual strategies used for imputation and feature selection, and the schemes produced by combinations of these techniques.
 
 % Raw word tokens are not suitable as features for several reasons. First, some words are used only very rarely and do not actually convey any sentiment. These could be words that are highly specific to the user or simply typos. Second, many words have multiple forms that are semantically equivalent. Third, analyzing individual word tokens misses semantics expressed through phrases or negation. Thus, feature extraction and selection are both conducive to a feature set more representative of the underlying sentiments expressed by the users.
 
 \subsection{Imputation}
 \label{sec:imputation}
 
-[TODO: WRITE ME]
+Because such a large fraction of the background dataset consists of invalid entries, we tested strategies to impute the underlying true values for these entries. Specifically, we examined a $\texttt{simple}$ imputation strategy and an $\texttt{averaging}$ imputation strategy. In the $\texttt{simple}$ strategy, each entry of value ``NA'' in the background dataset is replaced with with the respective feature's mode. All entries with negative values are then assigned a value of $1$ as a simple heuristic.
+
+In $\texttt{averaging}$ strategy, all entries with values of ``NA'' are still replaced with their features' modes. However, negative values are replaced in one of two ways depending on the data type of the corresponding features. Negative values in a feature that contains all integers are replaced by the mode of the nonnegative values of the feature. Negative values in features with floating point entries are replaced by the mean of the nonnegative values in the feature.
 
 \subsection{Feature selection}
 \label{sec:featureselection}
 
-[TODO: WRITE ME]
+We used several methods of varying complexity to remove features from the background dataset.
+
+\begin{enumerate}
+  \item $\texttt{string\textunderscore removal}$: Remove all features that contain at least one string
+  \item $\texttt{null\textunderscore removal}$: Remove all features that contain at least 1 ``NA'' value
+  \item $\texttt{negative\textunderscore removal(r)}$: Remove all features that contain at least $\texttt{r}$ negative values
+  \item $\texttt{chi\textunderscore squared(k)}$: Use $\chi^2$ analysis to reduce the number of features to $k$
+\end{enumerate}
+
+% \paragraph{$\texttt{string\textunderscore removal}$} removes all features that contain at least one entry with a string value.
+
+% \paragraph{$\texttt{null\textunderscore removal}$}: performs $\texttt{string\textunderscore removal}$ and then removes all features that contain at least one entry with value ``NA''.
+
+% \paragraph{$\texttt{negative\textunderscore removal}$}: performs $\texttt{string\textunderscore removal}$ and $\texttt{null\textunderscore removal}$
+
+\subsection{Evaluated schemes}
+\label{sec:evaluatedschemes}
+
+We evaluated five schemes composed of combinations of the imputation and feature selection strategies listed above. Our $\texttt{baseline}$ scheme uses $\texttt{simple}$ imputation and $\texttt{string\textunderscore removal}$ for feature selection. Because several of $\texttt{scikit-learn}$'s classification and regression strategies do not features of mixed type, we found the $\texttt{baseline}$ strategy to be a simple and useful heuristic.
+
+Next we examined the $\texttt{no\_null}$ strategy, which makes use of $\texttt{simple}$ imputation and both $\texttt{string\textunderscore removal}$ and $\texttt{null\textunderscore removal}$ feature selection strategies. In practice, we found this scheme to produce the best performance.
+
+The $\texttt{negative\_proportions(r)}$ scheme uses the $\texttt{simple}$ imputation strategy in addition to $\texttt{string\_removal}$, $\texttt{null\_removal}$, and $\texttt{negative\_removal(r)}$ feature selection strategies. We tested the $\texttt{negative\_proportions}$ scheme under several values of $r$ but observed that it consistently performed worse than the $\texttt{no\_null}$ strategy.
+
+The $\texttt{mean\_mode}$ scheme uses the $\texttt{averaging}$ imputation strategy and the $\texttt{string\_removal}$ and $\texttt{null\_removal}$ feature selection strategies.
+
+The $\texttt{feature\_reduced(k)}$ scheme uses the $\texttt{simple}$ imputation strategy and the $\texttt{string\_removal}$, $\texttt{null\_removal}$, and $\texttt{chi\_squared(k)}$ feature selection strategies. This scheme was evaluated for a range of values of $k$, but also consistently performed worse than the $\texttt{no\_null}$ scheme.
 
 % Without any feature selection, the number of features extracted this way is 11252 for the smaller dataset and 166566 for the larger dataset. Especially in the latter case, classifying on this many features is prohibitively expensive and prone to noise.
 
@@ -107,7 +135,7 @@ The label data consists of six labels we wish to predict based on the features i
 
 % We experimented with different values of $k$ depending on the dataset. For the smaller dataset, we used $k = 463$, which throws approximately 10\% of the remaining features after removing rare words and stop words. For the larger dataset, we used $k = 4000$, which throws about around 40\% of the remaining features.
 
-\section{Regression}
+\section{Classification and Regression}
 \label{sec:regression}
 
 We tested several classification and regression methods (detailed in Section~\ref{sec:intro}), but ultimately used random forest methods for both classification and regression tasks. Here we discuss in more detail the specifics of random forest regression.
