@@ -286,7 +286,25 @@ In addition to accuracy, we evaluated boolean variable predictions with precisio
 
 \begin{table}[H]
   \centering
+  \begin{tabular}{| c | c | c | c | c | c |}
+    \hline
+    ~ & BNB & MNB & KNN & RFC & GBC \\
+    Accuracy & 0.761 & 0.584 & 0.725 & 0.765 & 0.679 \\
+    Precision & 0.040 & 0.244 & 0.253 & 0.000 & 0.204 \\
+    Recall & 0.003 & 0.362 & 0.085 & 0.000 & 0.130 \\
+    F1 & 0.005 & 0.285 & 0.126 & 0.000 & 0.157
+  \end{tabular}
+  \caption{Evaluation of different models for binary classification}
+  \label{tab:boolresults}
 \end{table}
+
+\begin{table}
+
+% \item Bernoulli Naive Bayes Classifier (BNB)
+% \item Multinomial Naive Bayes Classifier (MNB)
+% \item K-Nearest Neighbors Classifier (KNN)
+% \item Random Forest Classifier (RFC)
+% \item Gradient Boosting Classifier (GBC)
 
 
 [TODO: WRITE ME]
