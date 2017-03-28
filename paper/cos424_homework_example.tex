@@ -74,7 +74,7 @@ The label data consists of six labels we wish to predict based on the features i
 
 Unfortunately, both sets of data were filled with invalid entries, such as N/A, string values, and specific negative values in the background case. The background data has 12945 columns, of which 3090 columns have null values (23.9\%), 147 columns have string values (1.14\%), and 10459 have negative values (80.8\%). Only 42 columns have neither null nor negative values, but up to 14 of these refer to some sort of ID and thus are not appropriate for being used as features. Thus, aggressive feature selection and imputation strategies must be used to yield a good fit, as we discuss in the next section. 
 
-Similarly, the label data is filled with null values. In particular, out of the 2121 rows, 956 GPA values (45.1\%), 703 grit values (33.1\%), 662 material hardship values (31.2\%), 662 eviction values (31.2\%), 844 layoff values (39.8\%), and 660 job training values (31.1\%) were null. Across all labels, as many as 655 rows were all nulls (30.9\%). The null label values were not considered in our evaluation.
+Similarly, the label data is filled with null values. In particular, out of the 2121 rows, 956 GPA values (45.1\%), 703 grit values (33.1\%), 662 material hardship values (31.2\%), 662 eviction values (31.2\%), 844 layoff values (39.8\%), and 660 job training values (31.1\%) were null. Across all labels, as many as 655 rows were all nulls (30.9\%). The null label values were not considered in our evaluation. Additionally, for the binary labels, a significant fraction of the values were \texttt{False} (64.7\%, 47.6\%, and 52.7\% for eviction, layoff, and job training respectively). This heavy skew is an important factor for choosing an appropriate model for classification.
 
 \section{Data processing}
 \label{sec:datapreprocessing}
@@ -163,65 +163,16 @@ Given a new sample $x$, a single regression tree determines which leaf represent
 \section{Evaluation}
 \label{sec:evaluation}
 
-\subsection{Hyperparameter tuning}
-\label{sec:hyperparametertuning}
-
-We used cross-validation to tune hyperparameters for the random forest regressors and classifiers used to predict response variables. We chose to tune $\texttt{n\textunderscore estimators}$ representing the number of regression trees trained, $\texttt{max\textunderscore features}$ representing the portion of all features to examine while generating splits, and $\texttt{min\textunderscore samples\textunderscore split}$ representing the minimum number of samples in a node before it is allowed to split. Each of these hyperparameters provides a method avoid overfitting, as they each place restrictions on the growth of decision and regression trees. Specifically, we used the $\texttt{GridSearchCV}$ and $\texttt{RandomSearchCV}$ methods from the $\texttt{scikit-learn}$ Python package. Figure~\ref{fig:params} denotes the values which we tested for each hyperparameter in both the continuous regression (Figure~\ref{fig:contparams}) and boolean classification (Figure~\ref{fig:boolparams}) cases.
-
-\begin{figure}[H]
-  \centering
-  \hfill
-  \begin{subfigure}[b]{0.35\textwidth}
-    \begin{align*}
-      &\texttt{n\textunderscore estimators}:~50,~75,~100\\
-      &\texttt{max\textunderscore features}:~0.75,~1.0\\
-      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25,~50
-    \end{align*}
-    \caption{Options for continuous regression}
-    \label{fig:contparams}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.35\textwidth}
-    \begin{align*}
-      &\texttt{n\textunderscore estimators}:~50,~100\\
-      &\texttt{max\textunderscore features}:~0.75,~1.0\\
-      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25
-    \end{align*}
-    \caption{Options for boolean classification}
-    \label{fig:boolparams}
-  \end{subfigure}
-  \caption{Hyperparameter options}
-  \label{fig:params}
-  \hfill
-\end{figure}
-
-The results of this cross-validation hyperparameter tuning are shown in Table~\ref{tab:optimalparams}. Note that different values are optimal for different labels.
-
-\begin{table}[H]
-  \centering
-  \fontsize{9}{11}\selectfont
-  \begin{tabular}{| c | c | c | c | c | c | c | c |}
-    \hline
-    ~ & \texttt{gpa} & \texttt{grit} & \texttt{materialHardship} & \texttt{eviction} & \texttt{layoff} & \texttt{jobTraining} \\ \hline
-    \texttt{n\textunderscore estimators} & 100 & 75 & 100 & 50 & 50 & 50 \\
-    \texttt{max\textunderscore features} & 1.0 & 0.75 & 0.75 & 0.75 & 1.0 & 0.75 \\
-    \texttt{min\textunderscore samples\textunderscore split} & 50 & 50 & 10 & 25 & 25 & 25 \\
-    \hline
-  \end{tabular}
-  \caption{Optimal hyperparameters for each label}
-  \label{tab:optimalparams}
-\end{table}
-
 \subsection{Results}
 \label{sec:results}
 
-We evaluated continuous variable predictions using the $R^2$ coefficient of determination defined as. Given $n$ true continuous labels $y_i$, let $\bar{y} = \frac{1}{n}\sum_{i=1}^n y_i$ be the mean of all labels. Let the predicted labels be denoted $\hat{y}_i$. The $R^2$ coefficient of determination is then defined as
+We evaluated continuous variable predictions using the $R^2$ coefficient of determination defined as follows. Given $n$ true continuous labels $y_i$, let $\bar{y} = \frac{1}{n}\sum_{i=1}^n y_i$ be the mean of all labels. Let the predicted labels be denoted $\hat{y}_i$. The $R^2$ coefficient of determination is then defined as
 
 \begin{align*}
   R^2 &= 1 - \frac{\sum_{i=1}^n (y_i - \hat{y}_i)^2}{\sum_{i=1}^n (y_i - \bar{y})^2}
 \end{align*}
 
-In addition to accuracy, we evaluated boolean variable predictions with precision, recall, and F1 scores. The F1 score is the harmonic mean of precision and recall, and is there greater when both precision and recall are greater.
+As for binary classification, we evaluated precision, recall, and f1 score as well as accuracy. We chose these additional metrics because accuracy alone does not take into account false positives and false negatives. Since both precision and recall are desirable properties, we also considered the f1 score, which is the harmonic mean of the two. Tables \ref{tab:contresults} and ~\ref{tab:boolresults} summarize how each model performs with respect to these metrics.
 
 \begin{table}[H]
   \begin{minipage}{0.30\textwidth}
@@ -252,7 +203,59 @@ In addition to accuracy, we evaluated boolean variable predictions with precisio
   \end{minipage}
 \end{table}
 
-We found that random forests performed best for both $R^2$ and Accuracy. This dataset is likely not linearly separable under reasonable imputation and feature selection schemes. Therefore, we expect that random forest regression would perform better than either support vector regression or linear regression. Also, because there are significantly more False values than True values across the boolean variables, all predictors are heavily skewed towards predicting False. This leads the random forest classifier to predict all False scores, which is why we observe precision, recall, and F1 scores of 0 for RFC
+In terms of both $R^2$ and accuracy, random forest (RFR and RFC) outperformed all other models. Because this dataset is likely not linearly separable under reasonable imputation and feature selection schemes, we expect random forest regression to yield a better fit than
+support vector regression and linear regression.
+
+In the binary case, because there are significantly more \texttt{False} values than \texttt{True} values across the boolean variables, all predictors are heavily skewed towards predicting \texttt{False}. This leads the random forest classifier to predict all \texttt{False} scores, which is why we observe precision, recall, and F1 scores of 0 for \texttt{RFC}.
+
+\subsection{Hyperparameter tuning}
+\label{sec:hyperparametertuning}
+
+We used $3$-fold cross validation to tune hyperparameters for our random forest models. We used the $\texttt{GridSearchCV}$ and $\texttt{RandomSearchCV}$ methods from the $\texttt{scikit-learn}$ library to perform cross validation. Figure~\ref{fig:params} lists the parameter space we explored. The optimal hyperparameters by label are summarized in Table~\ref{tab:optimalparams}.
+
+\begin{figure}[H]
+  \centering
+  \hfill
+  \begin{subfigure}[b]{0.35\textwidth}
+    \begin{align*}
+      &\texttt{n\textunderscore estimators}:~50,~75,~100\\
+      &\texttt{max\textunderscore features}:~0.75,~1.0\\
+      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25,~50
+    \end{align*}
+    \caption{Parameters for regression}
+    \label{fig:contparams}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.35\textwidth}
+    \begin{align*}
+      &\texttt{n\textunderscore estimators}:~50,~100\\
+      &\texttt{max\textunderscore features}:~0.75,~1.0\\
+      &\texttt{min\textunderscore samples\textunderscore split}:~10,~25
+    \end{align*}
+    \caption{Parameters for classification}
+    \label{fig:boolparams}
+  \end{subfigure}
+  \caption{Hyperparameter space for random forest}
+  \label{fig:params}
+  \hfill
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \fontsize{9}{11}\selectfont
+  \begin{tabular}{| c | c | c | c | c | c | c | c |}
+    \hline
+    ~ & \texttt{gpa} & \texttt{grit} & \texttt{materialHardship} & \texttt{eviction} & \texttt{layoff} & \texttt{jobTraining} \\ \hline
+    \texttt{n\textunderscore estimators} & 100 & 75 & 100 & 50 & 50 & 50 \\
+    \texttt{max\textunderscore features} & 1.0 & 0.75 & 0.75 & 0.75 & 1.0 & 0.75 \\
+    \texttt{min\textunderscore samples\textunderscore split} & 50 & 50 & 10 & 25 & 25 & 25 \\
+    \hline
+  \end{tabular}
+  \caption{Optimal hyperparameters for each label}
+  \label{tab:optimalparams}
+\end{table}
+
+The parameters we tuned are $\texttt{n\textunderscore estimators}$, which represents the number of regression trees trained, $\texttt{max\textunderscore features}$, which represents the portion of all features to examine while generating splits, and $\texttt{min\textunderscore samples\textunderscore split}$, which represents the minimum number of samples in a node before it is allowed to split. We chose these hyperparameters to tune because they all reduce overfitting, which we conjecture to be an important reason why random forest outperformed the other models we evaluated.
 
 \subsection{Beating the odds}
 \label{sec:beatingtheodds}
