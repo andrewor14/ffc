@@ -81,57 +81,52 @@ Similarly, the label data is filled with null values. In particular, out of the 
 
 We used several imputation and feature selection methods to prepare the background data before training classification and regression models. Here we describe the individual strategies used for imputation and feature selection, and the schemes produced by combinations of these techniques.
 
-% Raw word tokens are not suitable as features for several reasons. First, some words are used only very rarely and do not actually convey any sentiment. These could be words that are highly specific to the user or simply typos. Second, many words have multiple forms that are semantically equivalent. Third, analyzing individual word tokens misses semantics expressed through phrases or negation. Thus, feature extraction and selection are both conducive to a feature set more representative of the underlying sentiments expressed by the users.
-
 \subsection{Imputation}
 \label{sec:imputation}
 
-Because such a large fraction of the background dataset consists of invalid entries, we tested strategies to impute the underlying true values for these entries. Specifically, we examined a $\texttt{simple}$ imputation strategy and an $\texttt{averaging}$ imputation strategy. In the $\texttt{simple}$ strategy, each entry of value ``NA'' in the background dataset is replaced with with the respective feature's mode. All entries with negative values are then assigned a value of $1$ as a simple heuristic.
+Because such a large fraction of the background dataset consists of invalid entries, we tested strategies to impute the underlying true values for these entries. In particular, we experimented with the following:
 
-In $\texttt{averaging}$ strategy, all entries with values of ``NA'' are still replaced with their features' modes. However, negative values are replaced in one of two ways depending on the data type of the corresponding features. Negative values in a feature that contains all integers are replaced by the mode of the nonnegative values of the feature. Negative values in features with floating point entries are replaced by the mean of the nonnegative values in the feature.
+\begin{itemize}
+\item \textbf{Simple imputation:} Replace N/A with mode, negative values with $1$.
+\item \textbf{Averaging imputation:} Replace N/A with mode, negative values with mode or mean of valid values of the feature. Mode is used if the feature type is integer and mean is used if the feature type is float.
+\end{itemize}
+
+Imputation does not make sense for string columns so we simply discarded these columns instead, as we discuss next.
 
 \subsection{Feature selection}
 \label{sec:featureselection}
 
 We used several methods of varying complexity to remove features from the background dataset.
 
-\begin{enumerate}
-  \item $\texttt{string\textunderscore removal}$: Remove all features that contain at least one string
-  \item $\texttt{null\textunderscore removal}$: Remove all features that contain at least 1 ``NA'' value
-  \item $\texttt{negative\textunderscore removal(r)}$: Remove all features that contain at least $\texttt{r}$ negative values
-  \item $\texttt{chi\textunderscore squared(k)}$: Use $\chi^2$ analysis to reduce the number of features to $k$
-\end{enumerate}
-
-% \paragraph{$\texttt{string\textunderscore removal}$} removes all features that contain at least one entry with a string value.
-
-% \paragraph{$\texttt{null\textunderscore removal}$}: performs $\texttt{string\textunderscore removal}$ and then removes all features that contain at least one entry with value ``NA''.
-
-% \paragraph{$\texttt{negative\textunderscore removal}$}: performs $\texttt{string\textunderscore removal}$ and $\texttt{null\textunderscore removal}$
+\begin{itemize}
+  \item \textbf{String removal:} Remove features that contain at least one string
+  \item \textbf{Null removal:} Remove features that contain at least one N/A value
+  \item \textbf{Negative removal (r):} Remove features whose fraction of negative values is $\geq \texttt{r}$
+  \item \textbf{Chi-squared (k):} Select $k$ features with lowest $\chi^2$ score
+\end{itemize}
 
 \subsection{Evaluated schemes}
 \label{sec:evaluatedschemes}
 
-We evaluated five schemes composed of combinations of the imputation and feature selection strategies listed above. Our $\texttt{baseline}$ scheme uses $\texttt{simple}$ imputation and $\texttt{string\textunderscore removal}$ for feature selection. Because several of $\texttt{scikit-learn}$'s classification and regression strategies do not features of mixed type, we found the $\texttt{baseline}$ strategy to be a simple and useful heuristic.
+We evaluated five schemes composed of combinations of the imputation and feature selection strategies listed above:
 
-Next we examined the $\texttt{no\_null}$ strategy, which makes use of $\texttt{simple}$ imputation and both $\texttt{string\textunderscore removal}$ and $\texttt{null\textunderscore removal}$ feature selection strategies. In practice, we found this scheme to produce the best performance.
+\begin{itemize}
+\item \textbf{Baseline:} simple imputation + string removal = 12798 features
+\item \textbf{No null:} simple imputation + string removal + null removal = 9844 features
+\item \textbf{Data type dependent imputation:} average imputation + string removal + null removal = 9844 features
+\item \textbf{Negative proportions (r):} simple imputation + string removal + null removal + negative removal ($r$)
+  \begin{itemize}
+    \item{913 features for $r = 0.25$}
+    \item{2718 features for $r = 0.5$}
+    \item{3807 features for $r = 0.75$}
+  \end{itemize}
+\item \textbf{Chi-squared feature reduction:} simple imputation + string removal + null removal + chi-squared ($k$) = $k$ features
+\end{itemize}
 
-The $\texttt{negative\_proportions(r)}$ scheme uses the $\texttt{simple}$ imputation strategy in addition to $\texttt{string\_removal}$, $\texttt{null\_removal}$, and $\texttt{negative\_removal(r)}$ feature selection strategies. We tested the $\texttt{negative\_proportions}$ scheme under several values of $r$ but observed that it consistently performed worse than the $\texttt{no\_null}$ strategy.
+In our evaluation, we found that the \textit{no null} scheme yielded the best results for both continuous and binary labels. We decided to experiment with \textit{data type dependent imputation} because we found simply replacing all negative values with $1$ arbitrary. We also believed (incorrectly) that removing features with negative values in the \textit{negative proportions} scheme would help because negative values indicate invalid or missing answers.
 
-The $\texttt{mean\_mode}$ scheme uses the $\texttt{averaging}$ imputation strategy and the $\texttt{string\_removal}$ and $\texttt{null\_removal}$ feature selection strategies.
-
-The $\texttt{feature\_reduced(k)}$ scheme uses the $\texttt{simple}$ imputation strategy and the $\texttt{string\_removal}$, $\texttt{null\_removal}$, and $\texttt{chi\_squared(k)}$ feature selection strategies. This scheme was evaluated for a range of values of $k$, but also consistently performed worse than the $\texttt{no\_null}$ scheme.
-
-% Without any feature selection, the number of features extracted this way is 11252 for the smaller dataset and 166566 for the larger dataset. Especially in the latter case, classifying on this many features is prohibitively expensive and prone to noise.
-
-% Thus, we filtered the number of features as follows. First, we removed stop words, as specified by the NLTK library, and any words that occurred fewer than 5 times in the corpus. This step alone reduced the number of features to 515 in the smaller dataset and 6666 in the larger dataset. Then, we ranked the remaining features by Chi-squared score, which is given by:
-
-% \begin{align*}
-% \chi^2 = \sum_{ij}{\dfrac{(O_{ij} - E_{ij})^2}{E_{ij}}}
-% \end{align*}
-
-% where $O_{ij}$ is the observed count and $E_{ij}$ is the expected count. This quantity measures how much observed counts deviate from expected counts and tests the independence between two variables: the feature variable and the class variable in our case. We then select the best $k$ (lowest $\chi^2$) features and use them for classification.
-
-% We experimented with different values of $k$ depending on the dataset. For the smaller dataset, we used $k = 463$, which throws approximately 10\% of the remaining features after removing rare words and stop words. For the larger dataset, we used $k = 4000$, which throws about around 40\% of the remaining features.
+Similarly, \textit{chi-squared feature reduction} consistently led to worse results. In an effort to understand why this is the case, we confirmed that non-indicative features such as \texttt{challengeID} and \texttt{mothid1} (mother ID) had high $\chi^2$ scores, while hundreds of features had a $\chi^2$ score of 0. Oddly, even setting $k = 99.5\%$ of the total number of features led to a significant drop in accuracy for the binary case. 
+As such, we did not consider Chi-squared feature reduction further in our project.
 
 \section{Classification and Regression}
 \label{sec:regression}
@@ -165,56 +160,8 @@ and where $y_L^* = \frac{1}{\lvert L \rvert} \sum_{i \in L} y_i $ is the mean of
 
 Given a new sample $x$, a single regression tree determines which leaf represents $x$ and assigns to $x$ the predicted $y$ value of the mean of all response values represented by that leaf. Random forest regressors, given a new sample $x$, return as a prediction the average of the responses of each regression tree.
 
-% We trained four different models using this set of features: Bernoulli naive Bayes, multionmial naive Bayes, decision trees, and random forests. In this section, we will discuss random forests in detail.
-
-% Random forest \cite{randomforest} is an ensemble learning method used for classification and other machine learning tasks. The central idea behind random forest is bootstrap aggregating, also known as bagging, a technique that combines the results of multiple learning algorithms to reduce variance and avoid overfitting.
-
-% The algorithm generates $B$ random subsets of the input data and trains a decision tree on each one of the subsets. Additionally, in the spirit of the random subspace method \cite{randomsubspace}, each decision tree chooses $d$ features sampled randomly with replacement from the original set of features. Then, to predict a data point, the algorithm traverses all $B$ decision trees and returns the mode as the predicted label.
-
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.9\textwidth]{dt.png}
-%   \caption{A complex decision tree, borrowed from \cite{id3}}
-% \end{figure}
-
-% Each decision tree can be built as follows using the ID3 algorithm \cite{id3}:
-% \begin{enumerate}
-% \item Select the best feature that minimizes entropy (or maximizes information gain)
-% \item Split input data by the values of the feature, creating a node for each value
-% \item Recurse on each node by selecting the best remaining features
-% \end{enumerate}
-
-% Entropy is defined as follows:
-% \begin{align*}
-% \mathbb{H}(\pi) = -\sum_{c=1}^{C}{\pi_c log(\pi_c)}\\
-% \pi_c = \dfrac{1}{|\mathcal{D}|}\sum_{i \in \mathcal{D}}{\mathbb{I}(y_i = c)}
-% \end{align*}
-% where $\mathcal{D}$ is the data in the leaf node. Then information gain between the parent node $Y$ and the child node representing the test $X_j < t$ is given by \cite{textbook}:
-% \begin{align*}
-% IG(X_j < t, Y) &= \mathbb{H}(Y) - \mathbb{H}(Y | X_j < t)\\
-% &=\left(-\sum_c{p(y=c) \log p(y=c)}\right) + \left(\sum_c{p(y=c|X_j < t)\log p(c|X_j < t)}\right)
-% \end{align*}
-
-% The motivation behind combining the results of many decision trees is that single decision trees are highly sensitive to noise in the training set and thus prone to overfitting. Combining multiple decision trees reduces the variance of the model as long as the individual trees are not correlated. This requirement is provided by building trees on different subsets of the input data and using different a subset of features on each tree.
-
 \section{Evaluation}
 \label{sec:evaluation}
-
-[TODO: WRITE ME]
-
-% We used implementations in the \texttt{scikit-learn} \cite{scikitlearn} library for each of the classification schemes described above. Additionally, as a thought experiment, we implemented our own Bernoulli naive Bayes and multinomial naive Bayes classifiers from scratch in python and compared our results against implementations in \texttt{scikit-learn}. To enhance the robustness and generality of each of our models, we used $k$-fold cross validation with $k=5$.
-
-% \subsection{Metrics}
-% \label{sec:metrics}
-
-% \begin{align*}
-%   \text{accuracy} &= \dfrac{\text{TP} + \text{TN}}{\text{TP} + \text{TN} + \text{FP} + \text{FN}}\\
-%   \text{precision} &= \dfrac{\text{TP}}{\text{TP} + \text{FP}}\\
-%   \text{recall} &= \dfrac{\text{TP}}{\text{TP} + \text{FN}}
-% \end{align*}
-
-
-% These additional metrics were chosen because the raw accuracy does not contain any information about the number of false positives and false negatives. The area under the ROC curve gives us insight into the probability that a randomly chosen positive example has higher probability in being predicted as positive than a randomly chosen negative example. However, the area under two ROC curves can still be equal even if the two models have widely different precision and recall. Since precision and recall are both desirable properties, we use the F1 score, which captures the harmonic mean of both rates, in our evaluation.
 
 \subsection{Hyperparameter tuning}
 \label{sec:hyperparametertuning}
@@ -264,14 +211,6 @@ The results of this cross-validation hyperparameter tuning are shown in Table~\r
   \caption{Optimal hyperparameters for each label}
   \label{tab:optimalparams}
 \end{table}
-
-% The default parameters of the decision tree and random forest classifiers in \texttt{scikit-learn} did not yield good accuracy. Thus, for these models, we experimented with different sets of hyperparameters by trial and error. More specifically, the parameter grid we explored was:
-% \begin{align*}
-% &\texttt{min\textunderscore leaf\textunderscore samples}: 1, 10, 100\\
-% &\texttt{max\textunderscore features}: 0.5, 0.75, 0.9\\
-% &\texttt{n\textunderscore estimators}: 10, 30, 100
-% \end{align*}
-% where last parameter is for random forest only. We chose to tune \texttt{min\textunderscore leaf\textunderscore samples} because the default was 1, which led to many splits that were overly specific to the training set. Similarly, tuning \texttt{max\textunderscore features} reduces the chance of overfitting. Using more trees by increasing \texttt{n\textunderscore estimators} further randomizes the training, which should lead to lower generalization errors. In our experiments, we found that the best hyperparameters to use are $\texttt{min\textunderscore leaf\textunderscore samples} = 1, \texttt{max\textunderscore features} = 0.9, \texttt{n\textunderscore estimators} = 100$ for the smaller dataset and $\texttt{min\textunderscore leaf\textunderscore samples} = 10, \texttt{max\textunderscore features} = 0.9, \texttt{n\textunderscore estimators} = 100$ for the larger dataset.
 
 \subsection{Results}
 \label{sec:results}
@@ -328,12 +267,6 @@ Because our best-performing model predicts False for all boolean variables for a
 
 \section{Conclusion}
 \label{sec:conclusion}
-
-[TODO: WRITE ME]
-
-% We evaluated four different classification methods on two datasets of different sizes. We found that the multinomial naive Bayes classifier achieved highest accuracy, precision and recall. Based on similar studies, we suspect that the random forest classifier could achieve better results with more trees, more careful hyperparameter tuning, and larger datasets. It may also be worthwhile to investigate other measures of information gain, such as the gini impurity.
-
-% Another future direction is to generalize this classification to multiple classes, one for each star (out of five). Preliminary work from this project demonstrated that it is much more difficult to achieve high accuracy in this task, however, since ratings are highly subjective to the user.
 
 \begin{thebibliography}{}
 
