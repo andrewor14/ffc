@@ -39,13 +39,11 @@ This paper describes our submission to the Fragile Families Challenge \cite{ffc}
 \section{Introduction}
 \label{sec:intro}
 
-The Fragile Families and Child Wellbeing Study (FFCWS) \cite{ffcws} is an academic collaboration that follows around 5,000 urban families in the United States and collects information about how their social environments change over time. Interviews were first conducted shortly after the birth of the family's child between 1998 and 2000, then were conducted again when the child was age one, three, five, nine, and fifteen. Because of the goal is to understand the difficulty face by disadvantaged families, non-marital births are overrepresented (roughly three-quarters of all births) in the study.
-
-The data collected in this study has been used by academic papers published in many journals since then \cite{ffc_publications}. Insights derived from this data are shared with policy makers through the Future of Children \cite{foc}, a collaboration between the Woodrow Wilson School of Public and International Affairs at Princeton University and the Brookings Institution.
+The Fragile Families and Child Wellbeing Study (FFCWS) \cite{ffcws} is an academic collaboration that followed around 5,000 urban families in the United States and collected information about how their social environments changed over time. The data collected in this study has been used by academic papers published in many journals since then \cite{ffc_publications}. Insights derived from this data are shared with policy makers through the Future of Children \cite{foc}, a collaboration between the Woodrow Wilson School of Public and International Affairs at Princeton University and the Brookings Institution.
 
 The Fragile Families Challenge is an open challenge for data scientists to apply machine learning and statistical methods to the data collected in this study. The challenge aims to use ensemble methods on the best models submitted to discover factors correlated with children beating the odds.
 
-In this paper, we propose our solution to the Fragile Families Challenge. We modeled continuous labels and binary labels separately, using regression methods for the former and classification methods for the latter. The regression methods we evaluated are:
+In this paper, we discuss our solution to the Fragile Families Challenge. We modeled continuous labels and binary labels separately, using regression methods for the former and classification methods for the latter. The regression methods we evaluated are:
 
 \begin{enumerate}
 \item Linear Regression with Lasso Regularization (LRL)
@@ -61,7 +59,7 @@ and the classifiers we evaluated are:
 \item Gradient Boosting Classifier (GBC)
 \end{enumerate}
 
-We used the \texttt{scikit-learn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyperparameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
+We used the \texttt{scikit-learn} implementation of the methods listed above. The metrics we used in our evaluation are the coefficient of determination ($R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyperparameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques.
 
 All source code is available on Github at \cite{myrepo}.
 
