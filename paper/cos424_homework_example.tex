@@ -72,8 +72,9 @@ The background data is primarily composed of answers collected from interviews w
 
 The label data consists of six labels we wish to predict based on the features in the background data. These labels are derived from a final interview with the child when he or she is age 15. The six labels are: GPA, grit, material hardship, eviction, layoff and job training. The first three are continuous labels while the latter three are binary labels. There are 2121 rows in the label data, exactly half the number of rows in the background data. The goal is to predict the six labels for the 2121 missing rows using the background data.
 
+Unfortunately, both sets of data were filled with invalid entries, such as N/A, string values, and specific negative values in the background case. The background data has 12945 columns, of which 3090 columns have null values (23.9\%), 147 columns have string values (1.14\%), and 10459 have negative values (80.8\%). Only 42 columns have neither null nor negative values, but up to 14 of these refer to some sort of ID and thus are not appropriate for being used as features. Thus, aggressive feature selection and imputation strategies must be used to yield a good fit, as we discuss in the next section. 
 
-
+Similarly, the label data is filled with null values. In particular, out of the 2121 rows, 956 GPA values (45.1\%), 703 grit values (33.1\%), 662 material hardship values (31.2\%), 662 eviction values (31.2\%), 844 layoff values (39.8\%), and 660 job training values (31.1\%) were null. Across all labels, as many as 655 rows were all nulls (30.9\%). The null label values were not considered in our evaluation.
 
 \section{Data processing}
 \label{sec:datapreprocessing}
@@ -141,7 +142,7 @@ Random forest regression methods are used to combine multiple regression trees. 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[trim={0 6cm 0 6cm}, width=0.75\textwidth]{rt.pdf}
+  \includegraphics[trim={0 5cm 0 6cm}, width=0.75\textwidth]{rt.pdf}
   \caption{An example regression tree, borrowed from \cite{rffig}}
   \label{fig:regtree}
 \end{figure}
