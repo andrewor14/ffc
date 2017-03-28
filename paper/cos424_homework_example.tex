@@ -61,7 +61,7 @@ and the classifiers we evaluated are:
 \item Gradient Boosting Classifier
 \end{enumerate}
 
-We used the \texttt{sklearn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, as we discuss next.
+We used the \texttt{sklearn} implementation of all of the above regression and classification methods. The main metrics we used in our evaluation are the coefficient of determination (also known as the $R^2$ score) for continuous labels and accuracy for binary labels. In both cases, we found that Random Forest performs the best. We used k-fold cross validation to tune the hyper parameters of these models to yield better generalization error. To account for the abundance of missing or invalid values in the dataset, we experimented with various feature selection and imputation techniques, such as $\chi^2$ feature reduction and filling null values with the mean and mode of the column.
 
 All source code is available on Github at \cite{myrepo}.
 
@@ -70,13 +70,10 @@ All source code is available on Github at \cite{myrepo}.
 
 The background data is primarily composed of answers collected from interviews with the families over the years. These are the features used to train our models. Each row uniquely identifies a child and each column is either an ID of some form or an interview answer. In this dataset, there are 4242 rows and 12945 columns.
 
-The label data consists of six labels we wish to predict based on the features in the background data. There are 2121 rows in the label data, exactly half the number of rows in the background data. The goal is to predict the six labels for the 2121 missing rows. These labels are derived from a final interview with the child when he or she is age 15. The six labels are: GPA, grit, material hardship, eviction, layoff and job training. The first three are continuous labels while the latter three are binary labels.
+The label data consists of six labels we wish to predict based on the features in the background data. These labels are derived from a final interview with the child when he or she is age 15. The six labels are: GPA, grit, material hardship, eviction, layoff and job training. The first three are continuous labels while the latter three are binary labels. There are 2121 rows in the label data, exactly half the number of rows in the background data. The goal is to predict the six labels for the 2121 missing rows using the background data.
 
-% We used two datasets in this experiment. The first is the Sentiment Labelled Sentences Data Set \cite{smalldataset}, which consists of 3,000 labelled sentences extracted from reviews from IMDB, Amazon, and Yelp. There are 500 positive and 500 negative sentences from each of the websites and no neutral sentences. This dataset was used for evaluating a classification method that works around the lack of instance labels by exploring instance-level similarity \cite{individuallabel}.
 
-% The second dataset used in this experiment is the Multi-Domain Sentient Dataset \cite{largedataset}, which contains 38548 Amazon biased reviews. The subset used in this project is comprised of 10,000 reviews randomly sampled from all product categories. Prior work has used this dataset for a variety of purpose, ranging from sentiment classification \cite{domainadaptation} to providing bounds for minimizing empirical risk \cite{learningbounds} to weighting linear classifiers with confidence \cite{confidenceweight}.
 
-% The reasons for using this second dataset are twofold. First, it is much larger than the first one, which is conducive to more general models and thus lower generalization error. Many commonly used text analysis techniques we explored did not have a significant impact on the accuracy when training on the smaller dataset. Second, the Amazon dataset comes with ratings (out of 5 stars) in addition to just positive or negative labels. This enables us to generalize the techniques used in this project to multi-class classification in the future.
 
 \section{Data processing}
 \label{sec:datapreprocessing}
