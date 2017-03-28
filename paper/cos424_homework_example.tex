@@ -10,6 +10,7 @@
 \usepackage{amssymb}
 \usepackage{float}
 \usepackage{subcaption}
+\usepackage{enumitem}
 \title{Fragile Families Challenge}
 
 \author{
@@ -27,13 +28,15 @@ Princeton University \\
 \newcommand{\fix}{\marginpar{FIX}}
 \newcommand{\new}{\marginpar{NEW}}
 
+\setenumerate{itemsep=0em,topsep=0em,after=0em}
+
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
 
-This paper describes our submission to the Fragile Families Challenge \cite{ffc}, an effort that applies techniques in predictive modeling and causal inference to interviews conducted with disadvantaged families. The goal of the project is to improve the lives of children in these families by identifying underlying patterns in the answers given by the families. In this work, we use regression and classification methods to predict the values of six key attributes: GPA, grit, material hardship, eviction, layoff, and job training. Because of the abundance of invalid entries in the data, feature selection plays a crucial role in our effort.
+This paper describes our submission to the Fragile Families Challenge \cite{ffc}, an effort that applies techniques in predictive modeling and causal inference to surveys conducted with disadvantaged families. The goal of the project is to improve the lives of children in these families by identifying underlying patterns in the answers given by the families. In this work, we use regression and classification methods to predict the values of six key attributes: GPA, grit, material hardship, eviction, layoff, and job training. Because of the abundance of invalid entries in the data, feature selection plays a crucial role in our effort.
 
 \end{abstract}
 \section{Introduction}
@@ -64,11 +67,11 @@ All source code is available on Github at \cite{myrepo}.
 \section{Dataset}
 \label{sec:dataset}
 
-The background data is primarily composed of answers collected from interviews with the families over the years. These are the features used to train our models. Each row uniquely identifies a child and each column is either an ID of some form or an interview answer. In this dataset, there are 4242 rows and 12945 columns.
+The background dataset is primarily composed of answers to survey questions from the FFCWS. Each row uniquely identifies a child and each column is either an ID of some form or an answer to a survey question. In this dataset, there are 4242 rows and 12945 columns.
 
 The label data consists of six labels we wish to predict based on the features in the background data. These labels are derived from a final interview with the child when he or she is age 15. The six labels are: GPA, grit, material hardship, eviction, layoff and job training. The first three are continuous labels while the latter three are binary labels. There are 2121 rows in the label data, exactly half the number of rows in the background data. The goal is to predict the six labels for the 2121 missing rows using the background data.
 
-Unfortunately, both sets of data were filled with invalid entries, such as N/A, string values, and specific negative values in the background case. The background data has 12945 columns, of which 3090 columns have null values (23.9\%), 147 columns have string values (1.14\%), and 10459 have negative values (80.8\%). Only 42 columns have neither null nor negative values, but up to 14 of these refer to some sort of ID and thus are not appropriate for being used as features. Thus, aggressive feature selection and imputation strategies must be used to yield a good fit, as we discuss in the next section. 
+Unfortunately, both sets of data were filled with invalid entries, such as N/A and specific negative values in the background case. The background data has 12945 columns, of which 3090 columns have null values (23.9\%), 147 columns have string values (1.14\%) which are not trivially parsable by our models, and 10459 have negative values (80.8\%). Only 42 columns have neither null nor negative values, but up to 14 of these refer to some sort of ID and thus are not appropriate for use as features. Therefore, aggressive feature selection and imputation strategies must be used to yield a good fit, as we discuss in the next section. 
 
 Similarly, the label data is filled with null values. In particular, out of the 2121 rows, 956 GPA values (45.1\%), 703 grit values (33.1\%), 662 material hardship values (31.2\%), 662 eviction values (31.2\%), 844 layoff values (39.8\%), and 660 job training values (31.1\%) were null. Across all labels, as many as 655 rows were all nulls (30.9\%). The null label values were not considered in our evaluation. Additionally, for the binary labels, a significant fraction of the values were \texttt{False} (64.7\%, 47.6\%, and 52.7\% for eviction, layoff, and job training respectively). This heavy skew is an important factor for choosing an appropriate model for classification.
 
@@ -107,16 +110,17 @@ We used several methods of varying complexity to remove features from the backgr
 We evaluated five schemes composed of combinations of the imputation and feature selection strategies listed above:
 
 \begin{itemize}
-\item \textbf{Baseline:} simple imputation + string removal = 12798 features
-\item \textbf{No null:} simple imputation + string removal + null removal = 9844 features
-\item \textbf{Data type dependent imputation:} average imputation + string removal + null removal = 9844 features
-\item \textbf{Negative proportions (r):} simple imputation + string removal + null removal + negative removal ($r$)
-  \begin{itemize}
-    \item{913 features for $r = 0.25$}
-    \item{2718 features for $r = 0.5$}
-    \item{3807 features for $r = 0.75$}
-  \end{itemize}
-\item \textbf{Chi-squared feature reduction:} simple imputation + string removal + null removal + chi-squared ($k$) = $k$ features
+  \item \textbf{Baseline:} simple imputation + string removal = 12798 features
+  \item \textbf{No null:} simple imputation + string removal + null removal = 9844 features
+  \item \textbf{Data type dependent imputation:} average imputation + string removal + null removal = 9844 features
+  \item \textbf{Negative proportions (r):} simple imputation + string removal + null removal + negative removal ($r$)
+    \begin{itemize}
+      \itemsep0em
+      \item{913 features for $r = 0.25$}
+      \item{2718 features for $r = 0.5$}
+      \item{3807 features for $r = 0.75$}
+    \end{itemize}
+  \item \textbf{Chi-squared feature reduction:} simple imputation + string removal + null removal + chi-squared ($k$) = $k$ features
 \end{itemize}
 
 In our evaluation, we found that the \textit{no null} scheme yielded the best results for both continuous and binary labels. We decided to experiment with \textit{data type dependent imputation} because we found simply replacing all negative values with $1$ arbitrary. We also believed (incorrectly) that removing features with negative values in the \textit{negative proportions} scheme would help because negative values indicate invalid or missing answers.
@@ -199,8 +203,7 @@ As for binary classification, we evaluated precision, recall, and f1 score as we
   \end{minipage}
 \end{table}
 
-In terms of both $R^2$ and accuracy, random forest (RFR and RFC) outperformed all other models. Because this dataset is likely not linearly separable under reasonable imputation and feature selection schemes, we expect random forest regression to yield a better fit than
-support vector regression and linear regression.
+In terms of both $R^2$ and accuracy, random forest (RFR and RFC) outperformed all other models. Because this dataset is likely not linearly separable under reasonable imputation and feature selection schemes, we expect random forest regression to yield a better fit than support vector regression and linear regression.
 
 In the binary case, because there are significantly more \texttt{False} values than \texttt{True} values across the boolean variables, all predictors are heavily skewed towards predicting \texttt{False}. This leads the random forest classifier to predict all \texttt{False} scores, which is why we observe precision, recall, and F1 scores of 0 for \texttt{RFC}.
 
