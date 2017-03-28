@@ -263,8 +263,14 @@ For each continuous variable, we ranked the samples by the margin to which they 
 
 Because our best-performing model predicts False for all boolean variables for all samples, we observe no samples beating the odds for eviction or layoff, while every subject that has received job training has beaten the odds according to our model and definition.
 
+We hypothesize that we do not observe subjects who consistently beat the odds by a high margin because we train models for each variable independently using different hyperparameters. For future work, it would be interesting to train multiple labels together to see if larger overlaps occur between the subjects who beat the odds by the highest margins for each label.
+
 \section{Conclusion}
 \label{sec:conclusion}
+
+Due to the nature of the background data provided, we find that random forest methods perform best for both classification and regression problems. However, the fact that boolean training data is heavily skewed towards responses of ``False'' leads our random forest classification model to predict False for every test sample. Furthermore, there are many invalid responses throughout the background dataset. We hypothesize that this data sparsity causes standard feature selection techniques like chi-squared analysis to produce worse results.
+
+We also identified rankings subjects who beat the odds by the highest margin for continuous variables. Though there is little overlap between the tops of these rankings, we propose training a single predictive model on a combination of labels in order to better determine whether any subjects consistently beat the odds by high margins.
 
 \begin{thebibliography}{}
 
