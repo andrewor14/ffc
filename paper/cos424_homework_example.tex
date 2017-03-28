@@ -256,9 +256,9 @@ The results of this cross-validation hyperparameter tuning are shown in Table~\r
   \begin{tabular}{| c | c | c | c | c | c | c | c |}
     \hline
     ~ & \texttt{gpa} & \texttt{grit} & \texttt{materialHardship} & \texttt{eviction} & \texttt{layoff} & \texttt{jobTraining} \\ \hline
-    \texttt{n\textunderscore estimators} & 1 & 1 & 1 & 1 & 1 & 1 \\
-    \texttt{max\textunderscore features} & 1 & 1 & 1 & 1 & 1 & 1 \\
-    \texttt{min\textunderscore samples\textunderscore split} & 1 & 1 & 1 & 1 & 1 & 1 \\
+    \texttt{n\textunderscore estimators} & 100 & 75 & 100 & 50 & 50 & 50 \\
+    \texttt{max\textunderscore features} & 1.0 & 0.75 & 0.75 & 0.75 & 1.0 & 0.75 \\
+    \texttt{min\textunderscore samples\textunderscore split} & 50 & 50 & 10 & 25 & 25 & 25 \\
     \hline
   \end{tabular}
   \caption{Optimal hyperparameters for each label}
