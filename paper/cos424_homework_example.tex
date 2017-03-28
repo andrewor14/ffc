@@ -252,9 +252,7 @@ In addition to accuracy, we evaluated boolean variable predictions with precisio
   \end{minipage}
 \end{table}
 
-We found that random forests performed best for both $R^2$ and Accuracy. However, the random forest classifier model we used resulted in predictions of False for all boolean variables and for all samples. Therefore, we observe a precision, recall, and F1 score of 0 for the random forest classifier.
-
-This dataset is likely not linearly separable under reasonable imputation and feature selection schemes. Therefore, we expect that random forest regression would perform better than either support vector regression or Lasso-
+We found that random forests performed best for both $R^2$ and Accuracy. This dataset is likely not linearly separable under reasonable imputation and feature selection schemes. Therefore, we expect that random forest regression would perform better than either support vector regression or linear regression. Also, because there are significantly more False values than True values across the boolean variables, all predictors are heavily skewed towards predicting False. This leads the random forest classifier to predict all False scores, which is why we observe precision, recall, and F1 scores of 0 for RFC
 
 \subsection{Beating the odds}
 \label{sec:beatingtheodds}
