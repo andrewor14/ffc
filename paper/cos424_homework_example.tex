@@ -28,7 +28,7 @@ Princeton University \\
 \newcommand{\fix}{\marginpar{FIX}}
 \newcommand{\new}{\marginpar{NEW}}
 
-\setenumerate{itemsep=0em,topsep=0em,after=0em}
+\setenumerate{itemsep=0em}
 
 \begin{document}
 
@@ -259,7 +259,7 @@ The parameters we tuned are $\texttt{n\textunderscore estimators}$, which repres
 \subsection{Beating the odds}
 \label{sec:beatingtheodds}
 
-We were interested in determining which children ended the study with better metrics than we would predict with our model. Higher values of gpa and grit are considered better, while a lower value of material hardship is considered better. Therefore, we consider samples with higher gpa, higher grit, or lower material hardship than our predictions to have ``beaten the odds''. Similarly, we consider any sample that disagrees with our prediction and is \texttt{False} for eviction, \texttt{False} for layoff, or \texttt{True} for job training to have beaten the odds.
+We were interested in determining which children ended up with better metrics than we would predict with our model. Higher values of gpa and grit are considered better, while a lower value of material hardship is considered better. Therefore, we consider samples with higher gpa, higher grit, or lower material hardship than our predictions to have "beaten the odds''. Similarly, we consider any sample that disagrees with our prediction and is \texttt{False} for eviction, \texttt{False} for layoff, or \texttt{True} for job training to have beaten the odds.
 
 For each continuous variable, we ranked the samples by the margin to which they beat their prediction. We hoped to see high overlap in the tops of each of these ranked list. However, we found that there were no samples common to the top $100$ positions in all lists, and there were only ten samples common to the top $250$ samples in all lists.
 
